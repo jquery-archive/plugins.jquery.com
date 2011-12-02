@@ -22,7 +22,7 @@ file. It must be actual JSON, not just a JavaScript object literal.
 * homepage
 * files
 
-<h2 id="field-name">name</h2>
+## <a name="field-name">name</a>
 
 The *most* important things in your package.json are the name and version fields.
 The name and version together form an identifier that is assumed
