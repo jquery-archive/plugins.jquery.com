@@ -71,16 +71,19 @@ This is a little bit confusing to explain, but matches what you see in practice
 when people create tags in git like "v1.2.3" and then do "git describe" to generate
 a patch version.
 
-For more on versions and version ranges, see [Specifying Versions](#specifying-versions)
+See [Specifying Versions](#specifying-versions).
 
 ## <a name="field-title">title</a>
 
-A nice complete and pretty title of your plugin. Include jQuery (if you want) and
+A nice complete and pretty title of your plugin. This will be used for the page
+title and top-level heading on your plugin's page. Include jQuery (if you want) and
 spaces and mixed case, unlike [name](#field-name).
 
 ## <a name="field-author">author</a>
 
-One person. See [people fields](#people-fields)
+One person.
+
+See [People Fields](#people-fields).
 
 ## <a name="field-licenses">licenses</a>
 
@@ -124,7 +127,9 @@ The url to the plugin homepage.
 
 ## <a name="field-conbtributors">people fields: author, contributors</a>
 
-An array of people. See [people fields](#people-fields)
+An array of people.
+
+See [People Fields](#people-fields).
 
 ## <a name="field-files">files</a>
 
