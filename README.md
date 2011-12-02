@@ -11,6 +11,7 @@ the repository root. The specification for this file is in
 
 ## How to list a plugin
 
-Add the GitHub repo url to plugins.md, like so
+Add a line with the GitHub repo url to [plugins.txt](./plugins.txt), like
+so
 
-`* http://github.com/username/reponame`
+`http://github.com/username/reponame`
