@@ -1,0 +1,16 @@
+<h1>{{title}}</h1>
+<p>{{description}}</p>
+<div>
+	<div>
+		<button>Download {{title}}<br>Version {{version}}</button>
+		Requires: {{dependencyList}}
+	</div>
+	<div>
+		Homepage: {{homepage}}<br>
+		Author: {{person author}}<br>
+		{{#if contributors}}
+			Contributors: {{allContributors}}<br>
+		{{/if}}
+		Licensed as: {{licenses}}
+	</div>
+</div>
