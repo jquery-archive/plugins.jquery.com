@@ -1,2 +1,2 @@
-http://github.com/scottgonzalez/temp-jquery-foo
-http://github.com/scottgonzalez/temp-jquery-bar
+foo http://github.com/scottgonzalez/temp-jquery-foo
+bar http://github.com/scottgonzalez/temp-jquery-bar
