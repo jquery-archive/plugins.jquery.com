@@ -6,21 +6,23 @@ Specification of the jQuery Plugins Site package.json
 This document is all you need to know about what's required in your package.json
 file. It must be actual JSON, not just a JavaScript object literal.
 
+# Fields
+
 ## Required Fields
 
 * <a href="#field-name">name</a>
-* version
-* title
-* author
-* licenses
-* dependencies
+* <a href="#field-version">version</a>
+* <a href="#field-title">title</a>
+* <a href="#field-author">author</a>
+* <a href="#field-licenses">licenses</a>
+* <a href="#field-dependencies">dependencies</a>
 
 ## Optional Fields
 
-* description
-* keywords
-* homepage
-* files
+* <a href="#field-description">description</a>
+* <a href="#field-keywords">keywords</a>
+* <a href="#field-homepage">homepage</a>
+* <a href="#field-files">files</a>
 
 ## <a name="field-name">name</a>
 
@@ -45,7 +47,7 @@ The name is what your thing is called. Some tips:
   Site, either consider renaming your plugin or namespace it. For example, jQuery UI
   plugins are listed with the "ui-" prefix (e.g. ui-dialog, ui-autocomplete).
 
-## version
+## <a name="field-version">version</a>
 
 The *most* important things in your package.json are the name and version fields.
 The name and version together form an identifier that is assumed
@@ -69,16 +71,18 @@ This is a little bit confusing to explain, but matches what you see in practice
 when people create tags in git like "v1.2.3" and then do "git describe" to generate
 a patch version.
 
-## title
+For more on versions and version ranges, see [Specifying Versions](#specifying-versions)
+
+## <a name="field-title">title</a>
 
 A nice complete and pretty title of your plugin. Include jQuery (if you want) and
 spaces and mixed case, unlike name (see above).
 
-## author
+## <a name="field-author">author</a>
 
-See below: people fields
+One person. See [people fields](#people-fields)
 
-## licenses
+## <a name="field-licenses">licenses</a>
 
 Array of licenses under which the plugin is provided. Each license is a hash with
 a "type" property specifying the type of license and a url property linking to the actual text. If the license is one of the official open source licenses the official license name or its abbreviation may be explicated with the "type" property. If an abbreviation is provided (in parentheses), the abbreviation must be used.
@@ -90,7 +94,7 @@ a "type" property specifying the type of license and a url property linking to t
        }
     ]
 
-## dependencies
+## <a name="field-dependencies">dependencies</a>
 
 Dependencies are specified with a simple hash of package name to version
 range. The version range is EITHER a string which has one or more
@@ -104,24 +108,36 @@ Libraries such as jQuery or underscore, though not plugins, should be listed as
 dependencies as well. This gives you the flexibility to specify compatible versions
 of each library you depend on.
 
-## description
+## <a name="field-description">description</a>
 
 Put a description in it. It's a string. This helps people discover your
 plugin, as it's listed on the jQuery Plugins Site.
 
-## keywords
+## <a name="field-keywords">keywords</a>
 
 Put keywords in it. It's an array of strings. This helps people
 discover your plugin as it's listed on the jQuery Plugins Site.
 
-## homepage
+## <a name="field-homepage">homepage</a>
 
 The url to the plugin homepage.
 
-## people fields: author, contributors
+## <a name="field-conbtributors">people fields: author, contributors</a>
 
-The "author" is one person. "contributors" is an array of people. A "person"
-is an object with a "name" field and optionally "url" and "email", like this:
+An array of people. See [people fields](#people-fields)
+
+## <a name="field-files">files</a>
+
+The "files" field is an array of files that make up your plugin. This should
+be a file path relative to the root of your plugin folder.
+
+If you name a folder in the array, then it will also include the files
+inside that folder.
+
+# <a name="people-fields">People Fields</a>
+
+A "person" is an object with a "name" field and optionally "url" and
+"email", like this:
 
     { "name" : "Barney Rubble"
     , "email" : "b@rubble.com"
@@ -130,15 +146,7 @@ is an object with a "name" field and optionally "url" and "email", like this:
 
 Both the email and url are optional.
 
-## files
-
-The "files" field is an array of files that make up your plugin. This should
-be a file path relative to the root of your plugin folder.
-
-If you name a folder in the array, then it will also include the files
-inside that folder.
-
-### Specifying Versions
+# <a name="specifying-versions">Specifying Versions</a>
 
 Version range descriptors may be any of the following styles, where "version"
 is a semver compatible version identifier.
@@ -174,7 +182,7 @@ For example, these are all valid:
       }
     }
 
-### Tilde Version Ranges
+## <a name="tilde-version-ranges">Tilde Version Ranges</a>
 
 A range specifier starting with a tilde `~` character is matched against
 a version in the following fashion.
@@ -188,7 +196,7 @@ For example, the following are equivalent:
 * `"~1.2" = ">=1.2.0 <2.0.0"`
 * `"~1" = ">=1.0.0 <2.0.0"`
 
-### X Version Ranges
+## <a href="x-version-ranges">X Version Ranges</a>
 
 An "x" in a version range specifies that the version number must start
 with the supplied digits, but any digit may be used in place of the x.
