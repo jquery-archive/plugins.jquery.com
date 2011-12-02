@@ -15,4 +15,4 @@ Add a line with the GitHub repo url to
 [plugins.txt](/jquery/plugins.jquery.com/blob/master/plugins.txt), like
 so
 
-`http://github.com/username/reponame`
+`pluginname http://github.com/username/reponame`
