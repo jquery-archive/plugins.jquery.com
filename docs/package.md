@@ -76,7 +76,7 @@ For more on versions and version ranges, see [Specifying Versions](#specifying-v
 ## <a name="field-title">title</a>
 
 A nice complete and pretty title of your plugin. Include jQuery (if you want) and
-spaces and mixed case, unlike name (see above).
+spaces and mixed case, unlike [name](#field-name).
 
 ## <a name="field-author">author</a>
 
