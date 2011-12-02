@@ -6,7 +6,8 @@ The jQuery Plugins site, http://plugins.jquery.com/
 
 This site is an index of GitHub repositories that each contain a single
 jQuery plugin. Each such repository contains a valid `package.json` in
-the repository root. The specification for this file is in [docs/package.md]
+the repository root. The specification for this file is in
+[docs/package.md](./docs/package.md).
 
 ## How to list a plugin
 
