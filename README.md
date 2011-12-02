@@ -11,6 +11,6 @@ this file is in ./docs/package.md
 
 ## How to list a plugin
 
-Add the GitHub repo url to index.md, like so
+Add the GitHub repo url to plugins.md, like so
 
 `* http://github.com/username/reponame`
