@@ -8,7 +8,7 @@ file. It must be actual JSON, not just a JavaScript object literal.
 
 ## Required Fields
 
-* name
+* <a href="#field-name">name</a>
 * version
 * title
 * author
@@ -22,7 +22,7 @@ file. It must be actual JSON, not just a JavaScript object literal.
 * homepage
 * files
 
-## name
+<h2 id="field-name">name</h2>
 
 The *most* important things in your package.json are the name and version fields.
 The name and version together form an identifier that is assumed
