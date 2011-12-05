@@ -2,41 +2,34 @@ var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
 	template = require( "./template" ),
 	semver = require( "../lib/semver" ),
-	config = require( "./config" );
+	config = require( "./config" ),
+	pluginsFile = __dirname + "/../plugins.txt";
 
-function getPackage( url, fn ) {
-	var packageInfo = parsePackage( url ),
-		repoUrl = "git://github.com/" + packageInfo.user + "/" + packageInfo.repo + ".git";
+function dirname( path ) {
+	path = path.split( "/" );
+	path.pop();
+	return path.join( "/" );
+}
 
-	createUserDirectory( packageInfo.user, function( error, path ) {
+// TODO: this needs a more descriptive name
+function getPlugin( repoDetails, fn ) {
+	createUserDirectory( repoDetails, function( error ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		createOrUpdateRepo( repoUrl, path + "/" + packageInfo.repo, function( error, path ) {
+		createOrUpdateRepo( repoDetails, function( error ) {
 			if ( error ) {
 				return fn( error );
 			}
 
-			fn( null, {
-				user: packageInfo.user,
-				repo: packageInfo.repo,
-				path: path
-			});
+			fn( null );
 		});
 	});
 }
 
-function parsePackage( url ) {
-	var parts = url.match( /\/\/github\.com\/([^/]+)\/([^/]+)/ );
-	return {
-		user: parts[ 1 ],
-		repo: parts[ 2 ]
-	};
-}
-
-function createUserDirectory( user, fn ) {
-	var path = config.repoDir + "/" + user;
+function createUserDirectory( repoDetails, fn ) {
+	var path = dirname( repoDetails.path );
 	fs.stat( path, function( error, stat ) {
 		// directory already exists
 		if ( !error ) {
@@ -53,16 +46,16 @@ function createUserDirectory( user, fn ) {
 			if ( error ) {
 				return fn( error );
 			}
-			fn( null, path );
+			fn( null );
 		});
 	});
 }
 
-function createOrUpdateRepo( url, path, fn ) {
-	fs.stat( path, function( error, stat ) {
+function createOrUpdateRepo( repoDetails, fn ) {
+	fs.stat( repoDetails.path, function( error, stat ) {
 		// repo already exists
 		if ( !error ) {
-			return updateRepo( path, fn );
+			return updateRepo( repoDetails, fn );
 		}
 
 		// error other than repo not existing
@@ -70,32 +63,37 @@ function createOrUpdateRepo( url, path, fn ) {
 			return fn( error );
 		}
 
-		createRepo( url, path, fn );
+		createRepo( repoDetails, fn );
 	});
 }
 
-function createRepo( url, path, fn ) {
-	exec( "git clone " + url + " " + path, function( error, stdout, stderr ) {
+function createRepo( repoDetails, fn ) {
+	exec( "git clone " + repoDetails.git + " " + repoDetails.path, function( error, stdout, stderr ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		fn( null, path );
+		// TODO: handle stderr
+
+		fn( null );
 	});
 }
 
-function updateRepo( path, fn ) {
-	exec( "git fetch -t && git reset --hard origin", { cwd: path }, function( error, stdout, stderr ) {
+function updateRepo( repoDetails, fn ) {
+	exec( "git fetch -t && git reset --hard origin", { cwd: repoDetails.path }, function( error, stdout, stderr ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		fn( null, path );
+		// TODO: handle stderr
+
+		fn( null );
 	});
 }
 
-function greatestValidVersion( path, fn ) {
-	getVersions( path, function( error, versions ) {
+// TODO: return parsed package.json along with version
+function greatestValidVersion( repoDetails, fn ) {
+	getVersions( repoDetails.path, function( error, versions ) {
 		if ( error ) {
 			return fn( error );
 		}
@@ -108,7 +106,7 @@ function greatestValidVersion( path, fn ) {
 
 		// TODO: loop over versions
 		var version = versions[ 0 ];
-		getPackageJson( path, version, function( error, package ) {
+		getPackageJson( repoDetails.path, version, function( error, package ) {
 			if ( error ) {
 				return fn( error );
 			}
@@ -158,6 +156,7 @@ function getPackageJson( path, version, fn ) {
 
 		fs.readFile( path + "/package.json", "utf8", function( error, package ) {
 			if ( error ) {
+				console.log( "ERROR" );
 				return fn( error );
 			}
 
@@ -202,17 +201,18 @@ function generatePage( package, fn ) {
 }
 
 function process( repo, fn ) {
-	getPackage( repo, function( error, packageInfo ) {
+	var repoDetails = getRepoDetails( repo );
+	getPlugin( repoDetails, function( error ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		greatestValidVersion( packageInfo.path, function( error, version ) {
+		greatestValidVersion( repoDetails, function( error, version ) {
 			if ( error ) {
 				return fn( error );
 			}
 
-			getPackageJson( packageInfo.path, version, function( error, package ) {
+			getPackageJson( repoDetails.path, version, function( error, package ) {
 				if ( error ) {
 					return fn( error );
 				}
@@ -224,7 +224,7 @@ function process( repo, fn ) {
 					}
 
 					fn( null, {
-						userName: packageInfo.user,
+						userName: repoDetails.user,
 						pluginName: package.name,
 						pluginTitle: package.title,
 						content: page
@@ -256,10 +256,188 @@ function processAll( repos ) {
 	processOne( 0 );
 }
 
-fs.readFile( __dirname + "/../plugins.md", "utf8", function( error, repos ) {
-	if ( error ) {
-		return console.log( "couldn't read plugins.md" );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function getAllPlugins( fn ) {
+	fs.readFile( pluginsFile, "utf8", function( error, repos ) {
+		if ( error ) {
+			return fn( error );
+		}
+
+		fn( null, repos.trim().split( "\n" ).map(function( repo ) {
+			return repo.substring( repo.indexOf( " " ) + 1, repo.length );
+		}));
+	});
+}
+
+var reGithubSsh = /^git@github\.com:([^/]+)\/(.+)\.git$/,
+	reGithubHttp = /^\w+?:\/\/\w+@github\.com\/([^/]+)\/([^/]+)\.git$/,
+	reGithubGit = /^git:\/\/github\.com\/([^/]+)\/([^/]+)\.git$/,
+	reGithubSite = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)(\/.*)?$/;
+
+function getRepoDetails( repo ) {
+	var userName, repoName, partialPath,
+		matches =
+			reGithubSsh.exec( repo ) ||
+			reGithubHttp.exec( repo ) ||
+			reGithubGit.exec( repo ) ||
+			reGithubSite.exec( repo );
+
+	if ( matches ) {
+		userName = matches[ 1 ];
+		repoName = matches[ 2 ];
+		partialPath = "/" + userName + "/" + repoName;
+		return {
+			userName: userName,
+			repoName: repoName,
+			url: "https://github.com" + partialPath,
+			git: "git://github.com" + partialPath + ".git",
+			path: config.repoDir + partialPath
+		};
 	}
 
-	processAll( repos.trim().split( "\n" ) );
+	return null;
+}
+
+function pluginAlreadyExists( plugin, fn ) {
+	getAllPlugins(function( error, plugins ) {
+		if ( error ) {
+			fn( error );
+		}
+
+		fn( null, plugins.indexOf( plugin ) !== -1 );
+	});
+}
+
+
+
+
+
+
+
+function addPlugin( repoUrl, fn ) {
+	var repoDetails = getRepoDetails( repoUrl );
+
+	if ( !repoDetails ) {
+		return fn( new Error( "Could not parse '" + repoUrl + "'." ) );
+	}
+
+	function _pluginAlreadyExists( error, exists ) {
+		if ( error ) {
+			return fn( error );
+		}
+
+		if ( exists ) {
+			return fn( new Error( repoUrl + " already exists." ) );
+		}
+
+		getPlugin( repoDetails, _getPlugin );
+	}
+
+	function _getPlugin( error ) {
+		if ( error ) {
+			return fn( error );
+		}
+
+		greatestValidVersion( repoDetails, _greatestValidVersion );
+	}
+
+	function _greatestValidVersion( error, version ) {
+		if ( error ) {
+			return fn( error );
+		}
+
+		_addPluginToDatabase( version );
+	}
+
+	function _addPluginToDatabase( version ) {
+		getPackageJson( repoDetails.path, version, function( error, package ) {
+			package = JSON.parse( package );
+			var fd = fs.createWriteStream( pluginsFile, { flags: "a", encoding: "utf8" } );
+			fd.on( "open", function() {
+				fd.write( package.name + " " + repoDetails.url + "\n" );
+				fd.end();
+			});
+			fd.on( "error", function() {
+				return fn( error );
+			});
+			fd.on( "close", function() {
+				_generatePage( version, package );
+			});
+		});
+	}
+
+	function _generatePage( version, package ) {
+		generatePage( package, function( error, page ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			fn( null, {
+				userName: repoDetails.userName,
+				pluginName: package.name,
+				pluginTitle: package.title,
+				content: page
+			});
+		});
+	}
+
+	pluginAlreadyExists( repoDetails.url, _pluginAlreadyExists );
+}
+
+
+// normalize repo url
+// check if it exists
+	// yes = just bail
+// get repo
+// get versions
+	// no semver tags = report error
+// check greatest semver tag for package.json
+	// no package.json = report error
+// validate package.json
+	// invalid = report error
+// add to plugins.txt
+// build page
+// update WP
+
+addPlugin( "git://github.com/scottgonzalez/temp-jquery-foo.git", function( error, data ) {
+	console.log( "error", error );
+	console.log( "data", data );
 });
+return;
+
+getAllPlugins(function( error, repos ) {
+	if ( error ) {
+		return console.log( "couldn't read plugins.txt" );
+	}
+
+	processAll( repos );
+});
+
+
+// create a repo for just the plugins
+// - safer for updates (race condition with commits could hose ability to add plugins)
+// - create a separate file for each plugin, with the name of the plugin as the filename
+//   - elimintes race conditions of adds
+//   - allows us to store structured data and still have fast file access with low memory at scale
