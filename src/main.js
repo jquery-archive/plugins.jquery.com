@@ -11,6 +11,17 @@ function dirname( path ) {
 	return path.join( "/" );
 }
 
+function createError( message, code, data ) {
+	var error = new Error( message );
+	if ( code ) {
+		error.code = code;
+	}
+	if ( data ) {
+		error.data = data;
+	}
+	return error;
+}
+
 // TODO: this needs a more descriptive name
 function getPlugin( repoDetails, fn ) {
 	createUserDirectory( repoDetails, function( error ) {
@@ -340,7 +351,7 @@ function addPlugin( repoUrl, fn ) {
 	var repoDetails = getRepoDetails( repoUrl );
 
 	if ( !repoDetails ) {
-		return fn( new Error( "Could not parse '" + repoUrl + "'." ) );
+		return fn( createError( "Could not parse '" + repoUrl + "'.", "URL_PARSE" ) );
 	}
 
 	function _pluginAlreadyExists( error, exists ) {
@@ -349,7 +360,7 @@ function addPlugin( repoUrl, fn ) {
 		}
 
 		if ( exists ) {
-			return fn( new Error( repoUrl + " already exists." ) );
+			return fn( createError( repoUrl + " already exists.", "ALREADY_EXISTS" ) );
 		}
 
 		getPlugin( repoDetails, _getPlugin );
@@ -436,8 +447,6 @@ getAllPlugins(function( error, repos ) {
 });
 
 
-// create a repo for just the plugins
-// - safer for updates (race condition with commits could hose ability to add plugins)
-// - create a separate file for each plugin, with the name of the plugin as the filename
-//   - elimintes race conditions of adds
-//   - allows us to store structured data and still have fast file access with low memory at scale
+
+// don't list pre-release versions that are older than latest stable
+// list pre-release versions greater than latest stable, but don't let them become the latest
