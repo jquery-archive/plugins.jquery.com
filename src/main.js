@@ -147,7 +147,10 @@ function validateVersion( repoDetails, version, fn ) {
 			return fn( error );
 		}
 
-		fn( null, validatePackageJson( package, version ) );
+		fn( null, {
+			package: package,
+			errors: validatePackageJson( package, version )
+		});
 	});
 }
 
@@ -401,24 +404,33 @@ function addPlugin( repoUrl, fn ) {
 			return fn( createError( "No semver tags.", "NO_SEMVER_TAGS" ) );
 		}
 
-		// TODO: loop over all versions and generate pages
-		validateVersion( repoDetails, versions[ 0 ], function( error, errors ) {
-			if ( error ) {
-				return fn( error );
+		// TODO: add plugin to database
+		var allErrors = [];
+		function processVersion( version ) {
+			if ( !version ) {
+				return fn();
 			}
 
-			if ( errors.length ) {
-				return fn( createError( "Invalid package.json for " + versions[ 0 ] + ".", "INVALID_PACKAGE_JSON", {
-					version: versions[ 0 ],
-					errors: errors
-				}));
-			}
+			validateVersion( repoDetails, version, function( error, data ) {
+				if ( error ) {
+					return fn( error );
+				}
 
-			_addPluginToDatabase( versions[ 0 ] );
-		});
+				if ( data.errors.length ) {
+					allErrors.concat( data.errors );
+					return processVersion( versions.pop() );
+				}
+
+				_generatePage( data.package, function( error, data ) {
+					processVersion( versions.pop() );
+				});
+			});
+		}
+
+		processVersion( versions.pop() );
 	}
 
-	function _addPluginToDatabase( version ) {
+	function _addPluginToDatabase( version, fn ) {
 		getPackageJson( repoDetails, version, function( error, package ) {
 			var fd = fs.createWriteStream( config.pluginsDir + "/" + package.name, { flags: "a", encoding: "utf8" } );
 			fd.on( "open", function() {
@@ -429,12 +441,12 @@ function addPlugin( repoUrl, fn ) {
 				return fn( error );
 			});
 			fd.on( "close", function() {
-				_generatePage( version, package );
+				fn( null, package );
 			});
 		});
 	}
 
-	function _generatePage( version, package ) {
+	function _generatePage( package, fn ) {
 		generatePage( package, function( error, page ) {
 			if ( error ) {
 				return fn( error );
