@@ -1,3 +1,4 @@
 {
-	"repoDir": "/tmp/plugin-repos"
+	"repoDir": "/tmp/plugin-repos",
+	"pluginsDir": "/tmp/plugin-data"
 }

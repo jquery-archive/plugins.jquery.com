@@ -2,8 +2,11 @@ var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
 	template = require( "./template" ),
 	semver = require( "../lib/semver" ),
-	config = require( "./config" ),
-	pluginsFile = __dirname + "/../plugins.txt";
+	config = require( "./config" );
+
+
+
+
 
 function dirname( path ) {
 	path = path.split( "/" );
@@ -22,8 +25,11 @@ function createError( message, code, data ) {
 	return error;
 }
 
-// TODO: this needs a more descriptive name
-function getPlugin( repoDetails, fn ) {
+
+
+
+
+function fetchPlugin( repoDetails, fn ) {
 	createUserDirectory( repoDetails, function( error ) {
 		if ( error ) {
 			return fn( error );
@@ -41,7 +47,7 @@ function getPlugin( repoDetails, fn ) {
 
 function createUserDirectory( repoDetails, fn ) {
 	var path = dirname( repoDetails.path );
-	fs.stat( path, function( error, stat ) {
+	fs.stat( path, function( error ) {
 		// directory already exists
 		if ( !error ) {
 			return fn( null, path );
@@ -63,7 +69,7 @@ function createUserDirectory( repoDetails, fn ) {
 }
 
 function createOrUpdateRepo( repoDetails, fn ) {
-	fs.stat( repoDetails.path, function( error, stat ) {
+	fs.stat( repoDetails.path, function( error ) {
 		// repo already exists
 		if ( !error ) {
 			return updateRepo( repoDetails, fn );
@@ -102,40 +108,12 @@ function updateRepo( repoDetails, fn ) {
 	});
 }
 
-// TODO: return parsed package.json along with version
-function greatestValidVersion( repoDetails, fn ) {
-	getVersions( repoDetails.path, function( error, versions ) {
-		if ( error ) {
-			return fn( error );
-		}
 
-		// TODO: what do we want to do here?
-		if ( !versions.length ) {
-			console.log( "no versions" );
-			return fn( new Error() );
-		}
 
-		// TODO: loop over versions
-		var version = versions[ 0 ];
-		getPackageJson( repoDetails.path, version, function( error, package ) {
-			if ( error ) {
-				return fn( error );
-			}
 
-			var errors = validatePackageJson( package );
-			if ( errors.length ) {
-				// TODO: what do we want to do here?
-				console.log( errors );
-				return fn( new Error() );
-			}
 
-			fn( null, version );
-		});
-	});
-}
-
-function getVersions( path, fn ) {
-	exec( "git tag", { cwd: path }, function( error, stdout, stderr ) {
+function getVersions( repoDetails, fn ) {
+	exec( "git tag", { cwd: repoDetails.path }, function( error, stdout, stderr ) {
 		if ( error ) {
 			return fn( error );
 		}
@@ -159,16 +137,43 @@ function getVersions( path, fn ) {
 	});
 }
 
-function getPackageJson( path, version, fn ) {
-	exec( "git checkout " + version, { cwd: path }, function( error, stdout, stderr ) {
+
+
+
+
+function validateVersion( repoDetails, version, fn ) {
+	getPackageJson( repoDetails, version, function( error, package ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		fs.readFile( path + "/package.json", "utf8", function( error, package ) {
+		fn( null, validatePackageJson( package ) );
+	});
+}
+
+function getPackageJson( repoDetails, version, fn ) {
+	exec( "git checkout " + version, { cwd: repoDetails.path }, function( error, stdout, stderr ) {
+		if ( error ) {
+			return fn( error );
+		}
+
+		fs.readFile( repoDetails.path + "/package.json", "utf8", function( error, package ) {
+			if ( error && error.code === "ENOENT" ) {
+				return fn( createError( "No package.json for " + version + ".", "NO_PACKAGE_JSON", {
+					version: version
+				}));
+			}
+
 			if ( error ) {
-				console.log( "ERROR" );
 				return fn( error );
+			}
+
+			try {
+				package = JSON.parse( package );
+			} catch( error ) {
+				return fn( createError( "Could not parse package.json for " + version + ".", "INVALID_PACKAGE_JSON", {
+					version: version
+				}));
 			}
 
 			return fn( null, package );
@@ -179,13 +184,6 @@ function getPackageJson( path, version, fn ) {
 function validatePackageJson( package ) {
 	var errors = [];
 
-	try {
-		package = JSON.parse( package );
-	} catch( error ) {
-		errors.push[ "Invalid JSON." ];
-		return errors;
-	}
-
 	if ( !package.name ) {
 		errors.push( "Missing required field: name." );
 	}
@@ -194,6 +192,10 @@ function validatePackageJson( package ) {
 
 	return errors;
 }
+
+
+
+
 
 function generatePage( package, fn ) {
 	template.get( "page", function( error, template ) {
@@ -211,24 +213,37 @@ function generatePage( package, fn ) {
 	});
 }
 
-function process( repo, fn ) {
-	var repoDetails = getRepoDetails( repo );
-	getPlugin( repoDetails, function( error ) {
+
+
+
+
+function getAllPlugins( fn ) {
+	fs.readdir( config.pluginsDir, function( error, repos ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		greatestValidVersion( repoDetails, function( error, version ) {
+		fn( null, repos );
+	});
+}
+
+function process( repo, fn ) {
+	var repoDetails = getRepoDetails( repo );
+	fetchPlugin( repoDetails, function( error ) {
+		if ( error ) {
+			return fn( error );
+		}
+
+		getVersions( repoDetails, function( error, versions ) {
 			if ( error ) {
 				return fn( error );
 			}
 
-			getPackageJson( repoDetails.path, version, function( error, package ) {
+			getPackageJson( repoDetails, versions[ 0 ], function( error, package ) {
 				if ( error ) {
 					return fn( error );
 				}
 
-				package = JSON.parse( package );
 				generatePage( package, function( error, page ) {
 					if ( error ) {
 						return fn( error );
@@ -271,37 +286,6 @@ function processAll( repos ) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function getAllPlugins( fn ) {
-	fs.readFile( pluginsFile, "utf8", function( error, repos ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		fn( null, repos.trim().split( "\n" ).map(function( repo ) {
-			return repo.substring( repo.indexOf( " " ) + 1, repo.length );
-		}));
-	});
-}
-
 var reGithubSsh = /^git@github\.com:([^/]+)\/(.+)\.git$/,
 	reGithubHttp = /^\w+?:\/\/\w+@github\.com\/([^/]+)\/([^/]+)\.git$/,
 	reGithubGit = /^git:\/\/github\.com\/([^/]+)\/([^/]+)\.git$/,
@@ -331,17 +315,21 @@ function getRepoDetails( repo ) {
 	return null;
 }
 
-function pluginAlreadyExists( plugin, fn ) {
-	getAllPlugins(function( error, plugins ) {
-		if ( error ) {
-			fn( error );
+function pluginAlreadyExists( repoDetails, fn ) {
+	fs.stat( repoDetails.path, function( error ) {
+		// directory already exists
+		if ( !error ) {
+			return fn( null, true );
 		}
 
-		fn( null, plugins.indexOf( plugin ) !== -1 );
+		// error other than directory not existing
+		if ( error.code !== "ENOENT" ) {
+			return fn( error );
+		}
+
+		fn( null, false );
 	});
 }
-
-
 
 
 
@@ -363,29 +351,45 @@ function addPlugin( repoUrl, fn ) {
 			return fn( createError( repoUrl + " already exists.", "ALREADY_EXISTS" ) );
 		}
 
-		getPlugin( repoDetails, _getPlugin );
+		fetchPlugin( repoDetails, _fetchPlugin );
 	}
 
-	function _getPlugin( error ) {
+	function _fetchPlugin( error ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		greatestValidVersion( repoDetails, _greatestValidVersion );
+		getVersions( repoDetails, _getVersions );
 	}
 
-	function _greatestValidVersion( error, version ) {
+	function _getVersions( error, versions ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		_addPluginToDatabase( version );
+		if ( !versions.length ) {
+			return fn( createError( "No semver tags.", "NO_SEMVER_TAGS" ) );
+		}
+
+		// TODO: loop over all versions and generate pages
+		validateVersion( repoDetails, versions[ 0 ], function( error, errors ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			if ( errors.length ) {
+				return fn( createError( "Invalid package.json for " + versions[ 0 ] + ".", "INVALID_PACKAGE_JSON", {
+					version: versions[ 0 ]
+				}));
+			}
+
+			_addPluginToDatabase( versions[ 0 ] );
+		});
 	}
 
 	function _addPluginToDatabase( version ) {
-		getPackageJson( repoDetails.path, version, function( error, package ) {
-			package = JSON.parse( package );
-			var fd = fs.createWriteStream( pluginsFile, { flags: "a", encoding: "utf8" } );
+		getPackageJson( repoDetails, version, function( error, package ) {
+			var fd = fs.createWriteStream( config.pluginsDir + "/" + package.name, { flags: "a", encoding: "utf8" } );
 			fd.on( "open", function() {
 				fd.write( package.name + " " + repoDetails.url + "\n" );
 				fd.end();
@@ -414,23 +418,9 @@ function addPlugin( repoUrl, fn ) {
 		});
 	}
 
-	pluginAlreadyExists( repoDetails.url, _pluginAlreadyExists );
+	pluginAlreadyExists( repoDetails, _pluginAlreadyExists );
 }
 
-
-// normalize repo url
-// check if it exists
-	// yes = just bail
-// get repo
-// get versions
-	// no semver tags = report error
-// check greatest semver tag for package.json
-	// no package.json = report error
-// validate package.json
-	// invalid = report error
-// add to plugins.txt
-// build page
-// update WP
 
 addPlugin( "git://github.com/scottgonzalez/temp-jquery-foo.git", function( error, data ) {
 	console.log( "error", error );
@@ -443,7 +433,10 @@ getAllPlugins(function( error, repos ) {
 		return console.log( "couldn't read plugins.txt" );
 	}
 
-	processAll( repos );
+	processAll([
+		"git://github.com/scottgonzalez/temp-jquery-foo.git",
+		"git://github.com/scottgonzalez/temp-jquery-bar.git"
+	]);
 });
 
 
