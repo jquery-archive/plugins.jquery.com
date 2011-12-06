@@ -147,7 +147,7 @@ function validateVersion( repoDetails, version, fn ) {
 			return fn( error );
 		}
 
-		fn( null, validatePackageJson( package ) );
+		fn( null, validatePackageJson( package, version ) );
 	});
 }
 
@@ -181,14 +181,44 @@ function getPackageJson( repoDetails, version, fn ) {
 	});
 }
 
-function validatePackageJson( package ) {
+function validatePackageJson( package, version ) {
 	var errors = [];
 
 	if ( !package.name ) {
 		errors.push( "Missing required field: name." );
+	} else if ( package.name.charAt( 0 ) === "_" || package.name.charAt( 0 ) === "." ) {
+		errors.push( "Name cannot start with an underscore or dot." );
 	}
 
-	// TODO: full validation
+	if ( !package.version ) {
+		errors.push( "Missing required field: version." );
+	} else if ( semver.clean( package.version ) !== semver.clean( version ) ) {
+		errors.push( "Package.json version (" + package.version + ") does not match tag (" + version + ")." );
+	}
+
+	if ( !package.title ) {
+		errors.push( "Missing required field: title." );
+	}
+
+	if ( !package.author ) {
+		errors.push( "Missing required field: author." );
+	} else if ( !package.author.name ) {
+		errors.push( "Missing required field: author.name." );
+	}
+
+	if ( !package.licenses ) {
+		errors.push( "Missing required field: licenses." );
+	} else if ( !package.licenses.length ) {
+		errors.push( "There must be at least one license." );
+	} else if ( package.licenses.filter(function( license ) { return !license.url; }).length ) {
+		errors.push( "Missing required field: license.url." );
+	}
+
+	if ( !package.dependencies ) {
+		errors.push( "Missing required field: dependencies." );
+	} else if ( !package.dependencies.jquery ) {
+		errors.push( "Missing required dependency: jquery." );
+	}
 
 	return errors;
 }
@@ -379,7 +409,8 @@ function addPlugin( repoUrl, fn ) {
 
 			if ( errors.length ) {
 				return fn( createError( "Invalid package.json for " + versions[ 0 ] + ".", "INVALID_PACKAGE_JSON", {
-					version: versions[ 0 ]
+					version: versions[ 0 ],
+					errors: errors
 				}));
 			}
 
