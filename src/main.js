@@ -405,9 +405,16 @@ function addPlugin( repoUrl, fn ) {
 		}
 
 		// TODO: add plugin to database
-		var allErrors = [];
+		var allErrors = [],
+			mysql = new require( "mysql" ).createClient();
+			mysql.user = config.dbUser;
+			mysql.password = config.dbPassword;
+			mysql.useDatabase( config.dbName );
+			//TODO: Make this slightly less destructive. Only slightly
+			mysql.query("DELETE FROM wp_" + config.siteId + "_posts;");
 		function processVersion( version ) {
 			if ( !version ) {
+				mysql.end();
 				return fn();
 			}
 
@@ -422,6 +429,11 @@ function addPlugin( repoUrl, fn ) {
 				}
 
 				_generatePage( data.package, function( error, data ) {
+					console.log( data );
+					mysql.query("INSERT INTO wp_" + config.siteId + "_posts "
+						+ " ( post_name, post_title, post_content ) VALUES ( ?, ?, ?)",
+						[ data.pluginName + "-" + data.version, data.pluginTitle, data.content ]
+					);
 					processVersion( versions.pop() );
 				});
 			});
@@ -456,7 +468,8 @@ function addPlugin( repoUrl, fn ) {
 				userName: repoDetails.userName,
 				pluginName: package.name,
 				pluginTitle: package.title,
-				content: page
+				content: page,
+				version: semver.clean( package.version )
 			});
 		});
 	}

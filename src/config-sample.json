@@ -1,4 +1,8 @@
 {
 	"repoDir": "/tmp/plugin-repos",
-	"pluginsDir": "/tmp/plugin-data"
+	"pluginsDir": "/tmp/plugin-data",
+	"dbName": "mysql",
+	"dbUser": "mysql",
+	"dbPassword": "secret",
+	"siteId": null
 }
