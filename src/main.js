@@ -59,7 +59,7 @@ function createUserDirectory( repoDetails, fn ) {
 		}
 
 		// TODO: proper mode
-		fs.mkdir( path, 0777, function( error ) {
+		require("mkdirp")( path, 0777, function( error ) {
 			if ( error ) {
 				return fn( error );
 			}
@@ -407,11 +407,14 @@ function addPlugin( repoUrl, fn ) {
 		// TODO: add plugin to database
 		var allErrors = [],
 			mysql = new require( "mysql" ).createClient();
+			mysql.host = config.dbHost;
+			mysql.port = config.dbPort;
 			mysql.user = config.dbUser;
 			mysql.password = config.dbPassword;
 			mysql.useDatabase( config.dbName );
+		var postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
 			//TODO: Make this slightly less destructive. Only slightly
-			mysql.query("DELETE FROM wp_" + config.siteId + "_posts;");
+			mysql.query("DELETE FROM " + postsTable + ";");
 		function processVersion( version ) {
 			if ( !version ) {
 				mysql.end();
@@ -430,7 +433,7 @@ function addPlugin( repoUrl, fn ) {
 
 				_generatePage( data.package, function( error, data ) {
 					console.log( data );
-					mysql.query("INSERT INTO wp_" + config.siteId + "_posts "
+					mysql.query("INSERT INTO " + postsTable
 						+ " ( post_name, post_title, post_content ) VALUES ( ?, ?, ?)",
 						[ data.pluginName + "-" + data.version, data.pluginTitle, data.content ]
 					);

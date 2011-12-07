@@ -1,0 +1,19 @@
+{
+  "name": "plugins.jquery.com",
+  "version": "0.0.1",
+  "author": "jQuery Project",
+  "description": "...",
+  "homepage": "https://github.com/jquery/plugins.jquery.com",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jquery/plugins.jquery.com.git"
+  },
+  "main": "./src/main.js",
+  "dependencies": {
+    "mkdirp": "0.2.1",
+    "mysql": "0.9.5"
+  },
+  "engines": {
+    "node": "0.6.5"
+  }
+}
