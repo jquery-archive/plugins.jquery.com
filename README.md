@@ -25,7 +25,6 @@ so
 * MySql
 * WordPress
 * node
-* npm
 * git
 
 ## Installing
@@ -89,7 +88,7 @@ From http://plugins.jquery.com.local/wp-admin/
 
 ### Install node
 
-### Install npm
+1. Follow https://github.com/joyent/node/wiki/Installation
 
 ### plugins.jquery.com setup
 
@@ -103,4 +102,4 @@ From http://plugins.jquery.com.local/wp-admin/
 
 5. Edit src/config.json
 
-7. `node src/main.js`
+6. `node src/main.js`
