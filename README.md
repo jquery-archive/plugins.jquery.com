@@ -87,14 +87,20 @@ From http://plugins.jquery.com.local/wp-admin/
     # END WordPress
 ```
 
+### Install node
+
+### Install npm
+
 ### plugins.jquery.com setup
 
 1. `git clone git@github.com:jquery/plugins.jquery.com.git`
 
 2. `cd plugins.jquery.com`
 
-3. `cp src/config-sample.json src/config.json`
+3. `npm install`
 
-4. Edit src/config.json
+4. `cp src/config-sample.json src/config.json`
 
-5. `node src/main.js`
+5. Edit src/config.json
+
+7. `node src/main.js`
