@@ -16,3 +16,13 @@ Add a line with the GitHub repo url to
 so
 
 `pluginname http://github.com/username/reponame`
+
+## Installing
+
+1. `git clone`
+
+2. `cp src/config-sample.json src/config.json`
+
+3. Edit src/config.json
+
+4. `node src/main.js`
