@@ -17,14 +17,25 @@ so
 
 `pluginname http://github.com/username/reponame`
 
+## Requires
+
+* PHP
+* MySql
+* WordPress
+* node
+* npm
+* git
+
 ## Installing
 
-1. `git clone git@github.com:jquery/plugins.jquery.com.git`
+1. Install WordPress. See http://codex.wordpress.org/Installing_WordPress
 
-2. cd plugins.jquery.com
+2. `git clone git@github.com:jquery/plugins.jquery.com.git`
 
-3. `cp src/config-sample.json src/config.json`
+3. `cd plugins.jquery.com`
 
-4. Edit src/config.json
+4. `cp src/config-sample.json src/config.json`
 
-5. `node src/main.js`
+5. Edit src/config.json
+
+6. `node src/main.js`
