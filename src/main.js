@@ -4,6 +4,7 @@ var exec = require( "child_process" ).exec,
 	template = require( "./template" ),
 	semver = require( "../lib/semver" ),
 	config = require( "./config" ),
+	mkdirp = require("mkdirp"),
 	postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
 
 
@@ -61,7 +62,7 @@ function createUserDirectory( repoDetails, fn ) {
 		}
 
 		// TODO: proper mode
-		require("mkdirp")( path, 0777, function( error ) {
+		mkdirp( path, 0777, function( error ) {
 			if ( error ) {
 				return fn( error );
 			}
