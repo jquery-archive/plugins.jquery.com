@@ -30,12 +30,18 @@ so
 
 1. Install WordPress. See http://codex.wordpress.org/Installing_WordPress
 
-2. `git clone git@github.com:jquery/plugins.jquery.com.git`
+2. `git clone git://github.com/jquery/web-base-template.git`
 
-3. `cd plugins.jquery.com`
+3. `rm -rf wordpress/wp-content`
 
-4. `cp src/config-sample.json src/config.json`
+4. `ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
 
-5. Edit src/config.json
+5. `git clone git@github.com:jquery/plugins.jquery.com.git`
 
-6. `node src/main.js`
+6. `cd plugins.jquery.com`
+
+7. `cp src/config-sample.json src/config.json`
+
+8. Edit src/config.json
+
+9. `node src/main.js`
