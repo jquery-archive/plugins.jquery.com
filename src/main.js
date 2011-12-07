@@ -1,8 +1,10 @@
 var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
+	mysql = require( "mysql" ),
 	template = require( "./template" ),
 	semver = require( "../lib/semver" ),
-	config = require( "./config" );
+	config = require( "./config" ),
+	postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
 
 
 
@@ -155,32 +157,27 @@ function validateVersion( repoDetails, version, fn ) {
 }
 
 function getPackageJson( repoDetails, version, fn ) {
-	exec( "git checkout " + version, { cwd: repoDetails.path }, function( error, stdout, stderr ) {
+	exec( "git show " + version + ":package.json", { cwd: repoDetails.path }, function( error, stdout, stderr ) {
+		// this will also result in an error being passed, so we check stderr first
+		if ( stderr && stderr.substring( 0, 41 ) === "fatal: Path 'package.json' does not exist" ) {
+			return fn( createError( "No package.json for " + version + ".", "NO_PACKAGE_JSON", {
+				version: version
+			}));
+		}
+
 		if ( error ) {
 			return fn( error );
 		}
 
-		fs.readFile( repoDetails.path + "/package.json", "utf8", function( error, package ) {
-			if ( error && error.code === "ENOENT" ) {
-				return fn( createError( "No package.json for " + version + ".", "NO_PACKAGE_JSON", {
-					version: version
-				}));
-			}
+		try {
+			var package = JSON.parse( stdout );
+		} catch( error ) {
+			return fn( createError( "Could not parse package.json for " + version + ".", "INVALID_PACKAGE_JSON", {
+				version: version
+			}));
+		}
 
-			if ( error ) {
-				return fn( error );
-			}
-
-			try {
-				package = JSON.parse( package );
-			} catch( error ) {
-				return fn( createError( "Could not parse package.json for " + version + ".", "INVALID_PACKAGE_JSON", {
-					version: version
-				}));
-			}
-
-			return fn( null, package );
-		});
+		return fn( null, package );
 	});
 }
 
@@ -406,21 +403,25 @@ function addPlugin( repoUrl, fn ) {
 
 		// TODO: add plugin to database
 		var allErrors = [],
-			mysql = new require( "mysql" ).createClient();
-			mysql.host = config.dbHost;
-			mysql.port = config.dbPort;
-			mysql.user = config.dbUser;
-			mysql.password = config.dbPassword;
-			mysql.useDatabase( config.dbName );
-		var postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
+			waiting = versions.length,
+			db = new mysql.createClient();
+			db.host = config.dbHost;
+			db.port = config.dbPort;
+			db.user = config.dbUser;
+			db.password = config.dbPassword;
+			db.useDatabase( config.dbName );
 			//TODO: Make this slightly less destructive. Only slightly
-			mysql.query("DELETE FROM " + postsTable + ";");
-		function processVersion( version ) {
-			if ( !version ) {
-				mysql.end();
-				return fn();
-			}
+			db.query( "DELETE FROM " + postsTable + ";" );
 
+		function done() {
+			waiting--;
+			if ( !waiting ) {
+				db.end();
+				fn();
+			}
+		}
+
+		versions.forEach(function( version ) {
 			validateVersion( repoDetails, version, function( error, data ) {
 				if ( error ) {
 					return fn( error );
@@ -428,21 +429,19 @@ function addPlugin( repoUrl, fn ) {
 
 				if ( data.errors.length ) {
 					allErrors.concat( data.errors );
-					return processVersion( versions.pop() );
+					return done();
 				}
 
 				_generatePage( data.package, function( error, data ) {
 					console.log( data );
-					mysql.query("INSERT INTO " + postsTable
+					db.query("INSERT INTO " + postsTable
 						+ " ( post_name, post_title, post_content ) VALUES ( ?, ?, ?)",
 						[ data.pluginName + "-" + data.version, data.pluginTitle, data.content ]
 					);
-					processVersion( versions.pop() );
+					done();
 				});
 			});
-		}
-
-		processVersion( versions.pop() );
+		});
 	}
 
 	function _addPluginToDatabase( version, fn ) {
