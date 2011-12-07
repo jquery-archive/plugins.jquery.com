@@ -19,10 +19,12 @@ so
 
 ## Installing
 
-1. `git clone`
+1. `git clone git@github.com:jquery/plugins.jquery.com.git`
 
-2. `cp src/config-sample.json src/config.json`
+2. cd plugins.jquery.com
 
-3. Edit src/config.json
+3. `cp src/config-sample.json src/config.json`
 
-4. `node src/main.js`
+4. Edit src/config.json
+
+5. `node src/main.js`
