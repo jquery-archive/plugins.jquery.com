@@ -19,10 +19,11 @@ so
 
 ## Requires
 
+* jQuery's [web-base-template](https://github.com/jquery/web-base-template)
+* Web server (such as Apache)
 * PHP
 * MySql
 * WordPress
-* jQuery's [web-base-template](https://github.com/jquery/web-base-template)
 * node
 * npm
 * git
@@ -41,11 +42,14 @@ so
 
 ### WordPress
 
-1. Follow http://codex.wordpress.org/Installing_WordPress#Famous_5-Minute_Install
+1. Install a web server (such as Apache), PHP, and MySql
 
-2. Replace your WordPress install's wp-content with the one in web-base-template
+2. Follow http://codex.wordpress.org/Installing_WordPress#Famous_5-Minute_Install
+
+3. Replace the default WordPress wp-content with the one in web-base-template
 
 `rm -rf wordpress/wp-content`
+
 `ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
 
 ### WordPress config
