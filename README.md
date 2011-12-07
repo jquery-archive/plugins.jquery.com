@@ -22,26 +22,73 @@ so
 * PHP
 * MySql
 * WordPress
+* jQuery's web-base-template
 * node
 * npm
 * git
 
 ## Installing
 
-1. Install WordPress. See http://codex.wordpress.org/Installing_WordPress
+### WordPress
 
-2. `git clone git://github.com/jquery/web-base-template.git`
+1. See http://codex.wordpress.org/Installing_WordPress
 
-3. `rm -rf wordpress/wp-content`
+2. Edit /etc/hosts/ to add an entry for plugins.jquery.com.local
 
-4. `ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
+3. Visit http://plugins.jquery.com.local/ to finish the WordPress install
 
-5. `git clone git@github.com:jquery/plugins.jquery.com.git`
+### jQuery's web-base-template
 
-6. `cd plugins.jquery.com`
+1. Download or clone web-base-template
 
-7. `cp src/config-sample.json src/config.json`
+`git clone git://github.com/jquery/web-base-template.git`
 
-8. Edit src/config.json
+2. Replace your WordPress install's wp-content with the one in web-base-template
 
-9. `node src/main.js`
+`rm -rf wordpress/wp-content`
+`ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
+
+### WordPress setup
+
+From http://plugins.jquery.com.local/wp-admin/
+
+1. Activate the plugins-jquery-com theme
+
+* Select Appearance -> Themes
+* Under plugins-jquery-com, select 'Activate'
+
+2. Activate the jQuery Slugs plugin
+
+* Select Plugins
+* Under jQuery Slugs, select 'Activate'
+
+3. Set Custom Structure for Permalinks
+
+* Select Settings -> Permalinks
+* Select Custom Structure
+* Enter `/%postname%/`
+* Click Save Changes
+* Edit wordpress/.htaccess
+
+    # BEGIN WordPress
+    <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    RewriteRule ^index\.php$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.php [L]
+    </IfModule>
+    # END WordPress
+
+### plugins.jquery.com setup
+
+1. `git clone git@github.com:jquery/plugins.jquery.com.git`
+
+2. `cd plugins.jquery.com`
+
+3. `cp src/config-sample.json src/config.json`
+
+4. Edit src/config.json
+
+5. `node src/main.js`
