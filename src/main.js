@@ -1,8 +1,10 @@
 var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
+	mysql = require( "mysql" ),
 	template = require( "./template" ),
 	semver = require( "../lib/semver" ),
-	config = require( "./config" );
+	config = require( "./config" ),
+	postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
 
 
 
@@ -401,23 +403,24 @@ function addPlugin( repoUrl, fn ) {
 
 		// TODO: add plugin to database
 		var allErrors = [],
-			mysql = new require( "mysql" ).createClient();
-			mysql.host = config.dbHost;
-			mysql.port = config.dbPort;
-			mysql.user = config.dbUser;
-			mysql.password = config.dbPassword;
-			mysql.useDatabase( config.dbName );
-		var postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
+			waiting = versions.length,
+			db = new mysql.createClient();
+			db.host = config.dbHost;
+			db.port = config.dbPort;
+			db.user = config.dbUser;
+			db.password = config.dbPassword;
+			db.useDatabase( config.dbName );
 			//TODO: Make this slightly less destructive. Only slightly
-			mysql.query("DELETE FROM " + postsTable + ";");
-		var waiting = versions.length;
+			db.query( "DELETE FROM " + postsTable + ";" );
+
 		function done() {
 			waiting--;
 			if ( !waiting ) {
-				mysql.end();
+				db.end();
 				fn();
 			}
 		}
+
 		versions.forEach(function( version ) {
 			validateVersion( repoDetails, version, function( error, data ) {
 				if ( error ) {
@@ -431,7 +434,7 @@ function addPlugin( repoUrl, fn ) {
 
 				_generatePage( data.package, function( error, data ) {
 					console.log( data );
-					mysql.query("INSERT INTO " + postsTable
+					db.query("INSERT INTO " + postsTable
 						+ " ( post_name, post_title, post_content ) VALUES ( ?, ?, ?)",
 						[ data.pluginName + "-" + data.version, data.pluginTitle, data.content ]
 					);
