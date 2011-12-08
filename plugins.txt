@@ -1,2 +1,0 @@
-foo http://github.com/scottgonzalez/temp-jquery-foo
-bar http://github.com/scottgonzalez/temp-jquery-bar
