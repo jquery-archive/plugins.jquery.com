@@ -288,8 +288,6 @@ function processPlugin( repo, fn ) {
 		var allErrors = [],
 			waiting = versions.length;
 
-		wordpress.connect();
-
 		function progress() {
 			waiting--;
 			if ( !waiting ) {
@@ -365,5 +363,6 @@ processPlugin({
 	watchers: 25,
 	forks: 3
 }, function( error, data ) {
-	// TODO: log error
+	// TODO: log error to file
+	console.log( error );
 });
