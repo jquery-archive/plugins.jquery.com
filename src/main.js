@@ -32,6 +32,39 @@ function createError( message, code, data ) {
 
 
 
+var reGithubSsh = /^git@github\.com:([^/]+)\/(.+)\.git$/,
+	reGithubHttp = /^\w+?:\/\/\w+@github\.com\/([^/]+)\/([^/]+)\.git$/,
+	reGithubGit = /^git:\/\/github\.com\/([^/]+)\/([^/]+)\.git$/,
+	reGithubSite = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)(\/.*)?$/;
+
+function getRepoDetails( repo ) {
+	var userName, repoName, partialPath,
+		matches =
+			reGithubSsh.exec( repo ) ||
+			reGithubHttp.exec( repo ) ||
+			reGithubGit.exec( repo ) ||
+			reGithubSite.exec( repo );
+
+	if ( matches ) {
+		userName = matches[ 1 ];
+		repoName = matches[ 2 ];
+		partialPath = "/" + userName + "/" + repoName;
+		return {
+			userName: userName,
+			repoName: repoName,
+			url: "http://github.com" + partialPath,
+			git: "git://github.com" + partialPath + ".git",
+			path: config.repoDir + partialPath
+		};
+	}
+
+	return null;
+}
+
+
+
+
+
 function fetchPlugin( repoDetails, fn ) {
 	// make sure the user's directory exists first
 	mkdirp( dirname( repoDetails.path ), 0755, function( error ) {
@@ -113,7 +146,7 @@ function getVersions( repoDetails, fn ) {
 			}
 
 			return semver.valid( version );
-		}).sort( semver.compare ).reverse();
+		});
 		fn( null, tags );
 	});
 }
@@ -228,108 +261,6 @@ function generatePage( package, fn ) {
 
 
 
-function getAllPlugins( fn ) {
-	fs.readdir( config.pluginsDir, function( error, repos ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		fn( null, repos );
-	});
-}
-
-function process( repo, fn ) {
-	var repoDetails = getRepoDetails( repo );
-	fetchPlugin( repoDetails, function( error ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		getVersions( repoDetails, function( error, versions ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			getPackageJson( repoDetails, versions[ 0 ], function( error, package ) {
-				if ( error ) {
-					return fn( error );
-				}
-
-				generatePage( package, function( error, page ) {
-					if ( error ) {
-						return fn( error );
-					}
-
-					fn( null, {
-						userName: repoDetails.user,
-						pluginName: package.name,
-						pluginTitle: package.title,
-						content: page
-					});
-				});
-			});
-		});
-	});
-}
-
-function processAll( repos ) {
-	var length = repos.length - 1;
-
-	function processOne( i ) {
-		process( repos[ i ], function( error, data ) {
-			if ( error ) {
-				console.log( "error processing " + repos[ i ] );
-				console.log( error );
-			} else {
-				console.log( "processed " + repos[ i ] );
-				console.log( data );
-			}
-			if ( i < length ) {
-				processOne( i + 1 );
-			}
-		});
-	}
-
-	processOne( 0 );
-}
-
-
-
-
-
-var reGithubSsh = /^git@github\.com:([^/]+)\/(.+)\.git$/,
-	reGithubHttp = /^\w+?:\/\/\w+@github\.com\/([^/]+)\/([^/]+)\.git$/,
-	reGithubGit = /^git:\/\/github\.com\/([^/]+)\/([^/]+)\.git$/,
-	reGithubSite = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)(\/.*)?$/;
-
-function getRepoDetails( repo ) {
-	var userName, repoName, partialPath,
-		matches =
-			reGithubSsh.exec( repo ) ||
-			reGithubHttp.exec( repo ) ||
-			reGithubGit.exec( repo ) ||
-			reGithubSite.exec( repo );
-
-	if ( matches ) {
-		userName = matches[ 1 ];
-		repoName = matches[ 2 ];
-		partialPath = "/" + userName + "/" + repoName;
-		return {
-			userName: userName,
-			repoName: repoName,
-			url: "http://github.com" + partialPath,
-			git: "git://github.com" + partialPath + ".git",
-			path: config.repoDir + partialPath
-		};
-	}
-
-	return null;
-}
-
-
-
-
-
 function processPlugin( repo, fn ) {
 	var repoDetails = getRepoDetails( repo.url );
 
@@ -337,15 +268,13 @@ function processPlugin( repo, fn ) {
 		return fn( createError( "Could not parse '" + repoUrl + "'.", "URL_PARSE" ) );
 	}
 
-	fetchPlugin( repoDetails, _fetchPlugin );
-
-	function _fetchPlugin( error ) {
+	fetchPlugin( repoDetails, function( error ) {
 		if ( error ) {
 			return fn( error );
 		}
 
 		getVersions( repoDetails, _getVersions );
-	}
+	});
 
 	function _getVersions( error, versions ) {
 		if ( error ) {
@@ -365,35 +294,49 @@ function processPlugin( repo, fn ) {
 			db.user = config.dbUser;
 			db.password = config.dbPassword;
 			db.useDatabase( config.dbName );
-			//TODO: Make this slightly less destructive. Only slightly
+			// TODO: Make this slightly less destructive. Only slightly
 			db.query( "DELETE FROM " + postsTable + ";" );
 
-		function done() {
+		function progress() {
 			waiting--;
 			if ( !waiting ) {
-				db.end();
-				fn();
+				done();
 			}
+		}
+
+		function done() {
+			// TODO: update metadata in WP
+			// - don't list pre-release versions that are older than latest stable
+			// - list pre-release versions greater than latest stable
+			db.end();
+			fn();
 		}
 
 		versions.forEach(function( version ) {
 			validateVersion( repoDetails, version, function( error, data ) {
 				if ( error ) {
-					return fn( error );
+					// TODO: log failure for retry
+					return progress();
 				}
 
 				if ( data.errors.length ) {
 					allErrors.concat( data.errors );
-					return done();
+					return progress();
 				}
 
+				// TODO: verify user is owner of plugin
+
 				_generatePage( data.package, function( error, data ) {
+					if ( error ) {
+						// TODO: log failure for retry
+						return progress();
+					}
+
 					console.log( data );
-					db.query("INSERT INTO " + postsTable
-						+ " ( post_name, post_title, post_content ) VALUES ( ?, ?, ?)",
-						[ data.pluginName + "-" + data.version, data.pluginTitle, data.content ]
-					);
-					done();
+					db.query( "INSERT INTO " + postsTable +
+						" ( post_name, post_title, post_content ) VALUES ( ?, ?, ? )",
+						[ data.pluginName + "-" + data.version, data.pluginTitle, data.content ] );
+					progress();
 				});
 			});
 		});
@@ -418,29 +361,13 @@ function processPlugin( repo, fn ) {
 
 
 
+
+
 // TODO: track watchers and forks
 processPlugin({
 	url: "http://github.com/scottgonzalez/temp-jquery-foo",
 	watchers: 25,
 	forks: 3
-}, function( error, data ) {});
-return;
-
-getAllPlugins(function( error, repos ) {
-	if ( error ) {
-		return console.log( "couldn't read plugins.txt" );
-	}
-
-	processAll([
-		"git://github.com/scottgonzalez/temp-jquery-foo.git",
-		"git://github.com/scottgonzalez/temp-jquery-bar.git"
-	]);
+}, function( error, data ) {
+	// TODO: log error
 });
-
-
-
-// don't list pre-release versions that are older than latest stable
-// list pre-release versions greater than latest stable, but don't let them become the latest
-
-
-// log errors to error.log (and add to gitignore) (and add config option)
