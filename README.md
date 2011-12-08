@@ -4,15 +4,12 @@ The jQuery Plugins site, http://plugins.jquery.com/
 
 ### How it works
 
-This site is an index of GitHub repositories that each contain a single
-jQuery plugin. Each such repository contains a valid `package.json` in
-the repository root. The specification for this file is in
-[docs/package.md](/jquery/plugins.jquery.com/blob/master/docs/package.md).
+This site is an index of GitHub repositories that each contain a single jQuery plugin. Each such repository contains a valid `package.json` in the repository root. The specification for this file is in [docs/package.md](/jquery/plugins.jquery.com/blob/master/docs/package.md).
 
 ### How to list a plugin
 
-Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to your repository with our web hook url,
-`http://plugins.jquery.com/_update`
+Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to your repository with our web hook url, `http://plugins.jquery.com/_update`.
+**Warning:** This is not yet functional!
 
 ## Development
 
@@ -23,10 +20,10 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 * PHP
 * MySql
 * WordPress
-* node (>=0.6.4)
+* node
 * git
 
-### Installing
+### Installation
 
 ### web-base-template
 
@@ -48,7 +45,7 @@ Add a `plugins.jquery.com.local` entry in /etc/hosts
     * `rm -rf wordpress/wp-content`
     * `ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
 
-### WordPress config
+#### WordPress config
 
 From http://plugins.jquery.com.local/wp-admin/
 
@@ -69,11 +66,11 @@ From http://plugins.jquery.com.local/wp-admin/
  * Enter `/%postname%/`
  * Click Save Changes
 
-### Install node >=0.6.4
+#### Install node >=0.6.4
 
 1. Follow https://github.com/joyent/node/wiki/Installation
 
-### plugins.jquery.com setup
+#### plugins.jquery.com setup
 
 1. `git clone git@github.com:jquery/plugins.jquery.com.git`
 
@@ -93,3 +90,4 @@ From http://plugins.jquery.com.local/wp-admin/
     * Leave `siteId` null (unless you happen to be using a Wordpress multi-site installation locally, in which case supply the site's ID in the multi-site install)
 
 7. `node src/main.js` 
+
