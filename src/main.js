@@ -2,7 +2,7 @@ var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
 	mkdirp = require( "mkdirp" ),
 	template = require( "./template" ),
-	semver = require( "../lib/semver" ),
+	semver = require( "semver" ),
 	wordpress = require( "./wordpress" )
 	config = require( "./config" );
 
@@ -364,5 +364,7 @@ processPlugin({
 	forks: 3
 }, function( error, data ) {
 	// TODO: log error to file
-	console.log( error );
+	if ( error ) {
+		console.log( error );
+	}
 });
