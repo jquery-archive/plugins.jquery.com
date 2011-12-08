@@ -1,10 +1,10 @@
 var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
+	mkdirp = require( "mkdirp" ),
 	mysql = require( "mysql" ),
 	template = require( "./template" ),
 	semver = require( "../lib/semver" ),
 	config = require( "./config" ),
-	mkdirp = require("mkdirp"),
 	postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
 
 
@@ -33,7 +33,8 @@ function createError( message, code, data ) {
 
 
 function fetchPlugin( repoDetails, fn ) {
-	createUserDirectory( repoDetails, function( error ) {
+	// make sure the user's directory exists first
+	mkdirp( dirname( repoDetails.path ), 0755, function( error ) {
 		if ( error ) {
 			return fn( error );
 		}
@@ -43,29 +44,6 @@ function fetchPlugin( repoDetails, fn ) {
 				return fn( error );
 			}
 
-			fn( null );
-		});
-	});
-}
-
-function createUserDirectory( repoDetails, fn ) {
-	var path = dirname( repoDetails.path );
-	fs.stat( path, function( error ) {
-		// directory already exists
-		if ( !error ) {
-			return fn( null, path );
-		}
-
-		// error other than directory not existing
-		if ( error.code !== "ENOENT" ) {
-			return fn( error );
-		}
-
-		// TODO: proper mode
-		mkdirp( path, 0777, function( error ) {
-			if ( error ) {
-				return fn( error );
-			}
 			fn( null );
 		});
 	});
@@ -221,6 +199,8 @@ function validatePackageJson( package, version ) {
 		errors.push( "Missing required dependency: jquery." );
 	}
 
+	// TODO: validate repo (must match actual GitHub repo)
+
 	return errors;
 }
 
@@ -337,7 +317,7 @@ function getRepoDetails( repo ) {
 		return {
 			userName: userName,
 			repoName: repoName,
-			url: "https://github.com" + partialPath,
+			url: "http://github.com" + partialPath,
 			git: "git://github.com" + partialPath + ".git",
 			path: config.repoDir + partialPath
 		};
@@ -346,44 +326,18 @@ function getRepoDetails( repo ) {
 	return null;
 }
 
-function pluginAlreadyExists( repoDetails, fn ) {
-	fs.stat( repoDetails.path, function( error ) {
-		// directory already exists
-		if ( !error ) {
-			return fn( null, true );
-		}
-
-		// error other than directory not existing
-		if ( error.code !== "ENOENT" ) {
-			return fn( error );
-		}
-
-		fn( null, false );
-	});
-}
 
 
 
 
-
-function addPlugin( repoUrl, fn ) {
-	var repoDetails = getRepoDetails( repoUrl );
+function processPlugin( repo, fn ) {
+	var repoDetails = getRepoDetails( repo.url );
 
 	if ( !repoDetails ) {
 		return fn( createError( "Could not parse '" + repoUrl + "'.", "URL_PARSE" ) );
 	}
 
-	function _pluginAlreadyExists( error, exists ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		if ( exists ) {
-			return fn( createError( repoUrl + " already exists.", "ALREADY_EXISTS" ) );
-		}
-
-		fetchPlugin( repoDetails, _fetchPlugin );
-	}
+	fetchPlugin( repoDetails, _fetchPlugin );
 
 	function _fetchPlugin( error ) {
 		if ( error ) {
@@ -445,22 +399,6 @@ function addPlugin( repoUrl, fn ) {
 		});
 	}
 
-	function _addPluginToDatabase( version, fn ) {
-		getPackageJson( repoDetails, version, function( error, package ) {
-			var fd = fs.createWriteStream( config.pluginsDir + "/" + package.name, { flags: "a", encoding: "utf8" } );
-			fd.on( "open", function() {
-				fd.write( package.name + " " + repoDetails.url + "\n" );
-				fd.end();
-			});
-			fd.on( "error", function() {
-				return fn( error );
-			});
-			fd.on( "close", function() {
-				fn( null, package );
-			});
-		});
-	}
-
 	function _generatePage( package, fn ) {
 		generatePage( package, function( error, page ) {
 			if ( error ) {
@@ -476,15 +414,16 @@ function addPlugin( repoUrl, fn ) {
 			});
 		});
 	}
-
-	pluginAlreadyExists( repoDetails, _pluginAlreadyExists );
 }
 
 
-addPlugin( "git://github.com/scottgonzalez/temp-jquery-foo.git", function( error, data ) {
-	console.log( "error", error );
-	console.log( "data", data );
-});
+
+// TODO: track watchers and forks
+processPlugin({
+	url: "http://github.com/scottgonzalez/temp-jquery-foo",
+	watchers: 25,
+	forks: 3
+}, function( error, data ) {});
 return;
 
 getAllPlugins(function( error, repos ) {
@@ -502,3 +441,6 @@ getAllPlugins(function( error, repos ) {
 
 // don't list pre-release versions that are older than latest stable
 // list pre-release versions greater than latest stable, but don't let them become the latest
+
+
+// log errors to error.log (and add to gitignore) (and add config option)
