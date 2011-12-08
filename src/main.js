@@ -2,7 +2,7 @@ var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
 	mkdirp = require( "mkdirp" ),
 	template = require( "./template" ),
-	semver = require( "../lib/semver" ),
+	semver = require( "semver" ),
 	wordpress = require( "./wordpress" )
 	config = require( "./config" );
 
@@ -288,8 +288,6 @@ function processPlugin( repo, fn ) {
 		var allErrors = [],
 			waiting = versions.length;
 
-		wordpress.connect();
-
 		function progress() {
 			waiting--;
 			if ( !waiting ) {
@@ -365,5 +363,8 @@ processPlugin({
 	watchers: 25,
 	forks: 3
 }, function( error, data ) {
-	// TODO: log error
+	// TODO: log error to file
+	if ( error ) {
+		console.log( error );
+	}
 });
