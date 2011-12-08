@@ -2,54 +2,51 @@
 
 The jQuery Plugins site, http://plugins.jquery.com/
 
-## How it works
+### How it works
 
 This site is an index of GitHub repositories that each contain a single
 jQuery plugin. Each such repository contains a valid `package.json` in
 the repository root. The specification for this file is in
 [docs/package.md](/jquery/plugins.jquery.com/blob/master/docs/package.md).
 
-## How to list a plugin
+### How to list a plugin
 
-Add a line with the GitHub repo url to
-[plugins.txt](/jquery/plugins.jquery.com/blob/master/plugins.txt), like
-so
+Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to your repository with our web hook url,
+`http://plugins.jquery.com/_update`
 
-`pluginname http://github.com/username/reponame`
+## Development
 
-## Requires
+### Requires
 
 * jQuery's [web-base-template](https://github.com/jquery/web-base-template)
 * Web server (such as Apache)
 * PHP
 * MySql
 * WordPress
-* node
+* node (>=0.6.4)
 * git
 
-## Installing
+### Installing
 
 ### web-base-template
 
-1. Download or clone web-base-template
+Download or clone web-base-template
 
 `git clone git://github.com/jquery/web-base-template.git`
 
-### HOSTS
+#### HOSTS
 
-1. Add a `plugins.jquery.com.local` entry in /etc/hosts
+Add a `plugins.jquery.com.local` entry in /etc/hosts
 
-### WordPress
+#### WordPress
 
-1. Install a web server (such as Apache), PHP, and MySql
+1. Install a web server (such as Apache), PHP, and MySQL.  
 
 2. Follow http://codex.wordpress.org/Installing_WordPress#Famous_5-Minute_Install
 
-3. Replace the default WordPress wp-content with the one in web-base-template
-
-`rm -rf wordpress/wp-content`
-
-`ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
+3. Redirect your WordPress install to use the web-base-template's theme and config
+    * `rm -rf wordpress/wp-content`
+    * `ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
 
 ### WordPress config
 
@@ -72,7 +69,7 @@ From http://plugins.jquery.com.local/wp-admin/
  * Enter `/%postname%/`
  * Click Save Changes
 
-### Install node
+### Install node >=0.6.4
 
 1. Follow https://github.com/joyent/node/wiki/Installation
 
@@ -84,8 +81,15 @@ From http://plugins.jquery.com.local/wp-admin/
 
 3. `npm install`
 
-4. `cp src/config-sample.json src/config.json`
+4. `mkdir -p tmp/plugin-repos`
 
-5. Edit src/config.json
+5. `cp src/config-sample.json src/config.json`
 
-6. `node src/main.js`
+6. Edit src/config.json
+    * Set `dbHost` to the hostname of your WordPress MySQL server
+    * Set `dbPort` to your MySQL port (usually 3306)
+    * Set `dbName` to the MySQL user name
+    * Set `dbUser` to the MySQL password
+    * Leave `siteId` null (unless you happen to be using a Wordpress multi-site installation locally, in which case supply the site's ID in the multi-site install)
+
+7. `node src/main.js` 
