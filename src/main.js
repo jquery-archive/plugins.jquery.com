@@ -1,11 +1,10 @@
 var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
 	mkdirp = require( "mkdirp" ),
-	mysql = require( "mysql" ),
 	template = require( "./template" ),
 	semver = require( "../lib/semver" ),
-	config = require( "./config" ),
-	postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
+	wordpress = require( "./wordpress" )
+	config = require( "./config" );
 
 
 
@@ -287,15 +286,9 @@ function processPlugin( repo, fn ) {
 
 		// TODO: add plugin to database
 		var allErrors = [],
-			waiting = versions.length,
-			db = new mysql.createClient();
-			db.host = config.dbHost;
-			db.port = config.dbPort;
-			db.user = config.dbUser;
-			db.password = config.dbPassword;
-			db.useDatabase( config.dbName );
-			// TODO: Make this slightly less destructive. Only slightly
-			db.query( "DELETE FROM " + postsTable + ";" );
+			waiting = versions.length;
+
+		wordpress.connect();
 
 		function progress() {
 			waiting--;
@@ -305,10 +298,11 @@ function processPlugin( repo, fn ) {
 		}
 
 		function done() {
+			// TODO: update versionless post to have latest version
 			// TODO: update metadata in WP
 			// - don't list pre-release versions that are older than latest stable
 			// - list pre-release versions greater than latest stable
-			db.end();
+			wordpress.end();
 			fn();
 		}
 
@@ -332,11 +326,13 @@ function processPlugin( repo, fn ) {
 						return progress();
 					}
 
-					console.log( data );
-					db.query( "INSERT INTO " + postsTable +
-						" ( post_name, post_title, post_content ) VALUES ( ?, ?, ? )",
-						[ data.pluginName + "-" + data.version, data.pluginTitle, data.content ] );
-					progress();
+					wordpress.addVersionedPlugin( data, function( error ) {
+						if ( error ) {
+							// TODO: log failure for retry
+						}
+						console.log( "Added " + data.pluginName + " " + data.version );
+						progress();
+					});
 				});
 			});
 		});
