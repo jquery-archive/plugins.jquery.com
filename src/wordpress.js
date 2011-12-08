@@ -8,12 +8,13 @@ var db,
 
 
 function connect() {
-	db = new mysql.createClient();
-	db.host = config.dbHost;
-	db.port = config.dbPort;
-	db.user = config.dbUser;
-	db.password = config.dbPassword;
-	db.useDatabase( config.dbName );
+	db = new mysql.createClient({
+		host: config.dbHost,
+		port: config.dbPort,
+		user: config.dbUser,
+		password: config.dbPassword,
+		database: config.dbName
+	});
 }
 
 function getPostId( name, fn ) {
