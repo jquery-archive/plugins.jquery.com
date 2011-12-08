@@ -18,7 +18,7 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 * jQuery's [web-base-template](https://github.com/jquery/web-base-template)
 * Web server (such as Apache)
 * PHP
-* MySql
+* MySQL
 * WordPress
 * node
 * git
