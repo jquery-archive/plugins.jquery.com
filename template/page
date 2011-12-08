@@ -1,7 +1,7 @@
 <p>{{description}}</p>
 <div>
 	<div>
-		<button>Download {{title}}<br>Version {{version}}</button>
+		<a href="{{_downloadUrl}}">Download {{title}}<br>Version {{version}}</a>
 		Requires: {{dependencyList}}
 	</div>
 	<div>

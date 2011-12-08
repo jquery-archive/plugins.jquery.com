@@ -53,6 +53,9 @@ function getRepoDetails( repo ) {
 			repoName: repoName,
 			url: "http://github.com" + partialPath,
 			git: "git://github.com" + partialPath + ".git",
+			downloadUrl: function( version ) {
+				return "https://github.com" + partialPath + "/zipball/" + version
+			},
 			path: config.repoDir + partialPath
 		};
 	}
@@ -318,6 +321,7 @@ function processPlugin( repo, fn ) {
 
 				// TODO: verify user is owner of plugin
 
+				data.package._downloadUrl = repoDetails.downloadUrl( version );
 				_generatePage( data.package, function( error, data ) {
 					if ( error ) {
 						// TODO: log failure for retry
