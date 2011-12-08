@@ -81,10 +81,9 @@ From http://plugins.jquery.com.local/wp-admin/
 4. `cp src/config-sample.json src/config.json`
 
 5. Edit src/config.json
-    * Set `dbHost` to the hostname of your WordPress MySQL server
-    * Set `dbPort` to your MySQL port (usually 3306)
-    * Set `dbName` to the MySQL user name
-    * Set `dbUser` to the MySQL password
+    * Set `dbName` to your WordPress MySQL database name
+    * Set `dbUser` to your WordPress MySQL database user
+    * Set `dbPassword` to your WordPress MySQL database password
     * Leave `siteId` null (unless you happen to be using a Wordpress multi-site installation locally, in which case supply the site's ID in the multi-site install)
 
 6. `node src/main.js` 
