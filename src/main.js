@@ -75,13 +75,7 @@ function fetchPlugin( repoDetails, fn ) {
 			return fn( error );
 		}
 
-		createOrUpdateRepo( repoDetails, function( error ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			fn( null );
-		});
+		createOrUpdateRepo( repoDetails, fn );
 	});
 }
 
@@ -109,19 +103,34 @@ function createRepo( repoDetails, fn ) {
 
 		// TODO: handle stderr
 
-		fn( null );
+		getVersions( repoDetails, fn );
 	});
 }
 
 function updateRepo( repoDetails, fn ) {
-	exec( "git fetch -t && git reset --hard origin", { cwd: repoDetails.path }, function( error, stdout, stderr ) {
+	getVersions( repoDetails, function( error, prevVersions ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		// TODO: handle stderr
+		exec( "git fetch -t", { cwd: repoDetails.path },
+			function( error, stdout, stderr ) {
+				if ( error ) {
+					return fn( error );
+				}
 
-		fn( null );
+				// TODO: handle stderr
+
+				getVersions( repoDetails, function( error, versions ) {
+					if ( error ) {
+						return fn( error );
+					}
+
+					fn( null, versions.filter(function( version ) {
+						return prevVersions.indexOf( version ) === -1;
+					}));
+				});
+			});
 	});
 }
 
@@ -142,6 +151,7 @@ function getVersions( repoDetails, fn ) {
 			if ( version.charAt( 0 ) === "v" ) {
 				version = version.substring( 1 );
 			}
+			// TODO: disallow builds
 
 			// tag is not a clean version number
 			if ( semver.clean( version ) !== version ) {
@@ -271,15 +281,7 @@ function processPlugin( repo, fn ) {
 		return fn( createError( "Could not parse '" + repoUrl + "'.", "URL_PARSE" ) );
 	}
 
-	fetchPlugin( repoDetails, function( error ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		getVersions( repoDetails, _getVersions );
-	});
-
-	function _getVersions( error, versions ) {
+	fetchPlugin( repoDetails, function( error, versions ) {
 		if ( error ) {
 			return fn( error );
 		}
@@ -300,7 +302,6 @@ function processPlugin( repo, fn ) {
 		}
 
 		function done() {
-			// TODO: track invalid versions (user error, not system error)
 			// TODO: update versionless post to have latest version
 			// TODO: update metadata in WP
 			// - don't list pre-release versions that are older than latest stable
@@ -349,7 +350,7 @@ function processPlugin( repo, fn ) {
 				});
 			});
 		});
-	}
+	});
 
 	function _addPluginVersion( version, package, fn ) {
 		// find out who owns this plugin
