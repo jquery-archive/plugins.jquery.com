@@ -4,6 +4,7 @@ var mysql = require( "mysql" ),
 var db,
 	// TODO: make sure all queries support siteId
 	postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
+	postmetaTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "postmeta";
 
 
 
@@ -61,7 +62,7 @@ function setMeta( plugin, key, value, fn ) {
 			return fn( new Error( "Cannot set " + key + " for " + plugin + "." ) );
 		}
 
-		db.query( "SELECT `meta_id` FROM `wp_postmeta` " +
+		db.query( "SELECT `meta_id` FROM `" + postmetaTable + "` " +
 			"WHERE `post_id` = ? AND `meta_key` = ?",
 			[ id, key ], function( error, rows ) {
 				if ( error ) {
@@ -69,7 +70,7 @@ function setMeta( plugin, key, value, fn ) {
 				}
 
 				if ( !rows.length ) {
-					db.query( "INSERT INTO `wp_postmeta` " +
+					db.query( "INSERT INTO `" + postmetaTable + "` " +
 						"SET `post_id` = ?, `meta_key` = ?, `meta_value` = ?",
 						[ id, key, value ], function( error ) {
 							if ( error ) {
@@ -79,7 +80,7 @@ function setMeta( plugin, key, value, fn ) {
 							fn( null );
 						});
 				} else {
-					db.query( "UPDATE `wp_postmeta` " +
+					db.query( "UPDATE `" + postmetaTable + "` " +
 						"SET `meta_value` = ? WHERE `meta_id` = ?",
 						[ value, rows[ 0 ].meta_id ], function( error ) {
 							if ( error ) {
@@ -103,7 +104,7 @@ function getMeta( plugin, key, fn ) {
 			return fn( null, null );
 		}
 
-		db.query( "SELECT `meta_value` FROM `wp_postmeta` " +
+		db.query( "SELECT `meta_value` FROM `" + postmetaTable + "` " +
 			"WHERE `post_id` = ? AND `meta_key` = ?",
 			[ id, key ], function( error, rows ) {
 				if ( error ) {
