@@ -110,6 +110,10 @@ function getMeta( plugin, key, fn ) {
 					return fn( error );
 				}
 
+				if ( !rows.length ) {
+					return fn( null, null );
+				}
+
 				fn( null, rows[ 0 ].meta_value );
 			});
 	});
@@ -132,10 +136,12 @@ module.exports = {
 			data.pluginTitle, data.content, fn );
 	}),
 
+	// TODO: check if this is needed in the end
 	getOwner: auto(function( plugin, fn ) {
 		getMeta( plugin, "owner", fn );
 	}),
 
+	// TODO: check if this is needed in the end
 	setOwner: auto(function( plugin, owner, fn ) {
 		createOrUpdateMeta( plugin, "owner", owner, fn );
 	}),

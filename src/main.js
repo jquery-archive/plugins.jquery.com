@@ -1,9 +1,10 @@
 var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
 	mkdirp = require( "mkdirp" ),
-	template = require( "./template" ),
 	semver = require( "semver" ),
-	wordpress = require( "./wordpress" )
+	template = require( "./template" ),
+	wordpress = require( "./wordpress" ),
+	pluginsDb = require( "./pluginsdb" ),
 	config = require( "./config" );
 
 
@@ -234,8 +235,6 @@ function validatePackageJson( package, version ) {
 		errors.push( "Missing required dependency: jquery." );
 	}
 
-	// TODO: validate repo (must match actual GitHub repo)
-
 	return errors;
 }
 
@@ -284,11 +283,12 @@ function processPlugin( repo, fn ) {
 		}
 
 		if ( !versions.length ) {
-			return fn( createError( "No semver tags.", "NO_SEMVER_TAGS" ) );
+			return fn( null );
 		}
 
-		// TODO: add plugin to database
 		var allErrors = [],
+			// TODO: track our actions so we can process metadata in done()
+			plugins = {},
 			waiting = versions.length;
 
 		function progress() {
@@ -314,26 +314,43 @@ function processPlugin( repo, fn ) {
 					return progress();
 				}
 
+				var package = data.package;
+
 				if ( data.errors.length ) {
 					allErrors.concat( data.errors );
 					return progress();
 				}
 
-				// TODO: verify user is owner of plugin
-
-				data.package._downloadUrl = repoDetails.downloadUrl( version );
-				_generatePage( data.package, function( error, data ) {
+				// find out who owns this plugin
+				// if there is no owner, then set the user as the owner
+				pluginsDb.getOrSetOwner( package.name, repoDetails.userName, function( error, owner ) {
 					if ( error ) {
 						// TODO: log failure for retry
 						return progress();
 					}
 
-					wordpress.addVersionedPlugin( data, function( error ) {
+					// the plugin is owned by someone else
+					if ( owner !== repoDetails.userName ) {
+						return progress();
+					}
+
+					// TODO: track action in sqlite
+
+					// add additional metadata and generate the plugin page
+					package._downloadUrl = repoDetails.downloadUrl( version );
+					_generatePage( package, function( error, data ) {
 						if ( error ) {
 							// TODO: log failure for retry
+							return progress();
 						}
-						console.log( "Added " + data.pluginName + " " + data.version );
-						progress();
+
+						wordpress.addVersionedPlugin( data, function( error ) {
+							if ( error ) {
+								// TODO: log failure for retry
+							}
+							console.log( "Added " + data.pluginName + " " + data.version );
+							progress();
+						});
 					});
 				});
 			});

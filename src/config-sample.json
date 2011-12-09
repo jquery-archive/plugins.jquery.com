@@ -1,6 +1,6 @@
 {
 	"repoDir": "/tmp/plugin-repos",
-	"pluginsDir": "/tmp/plugin-data",
+	"pluginsDb": "plugins.db",
 	"dbHost": "localhost",
 	"dbPort": 3306,
 	"dbName": "mysql",

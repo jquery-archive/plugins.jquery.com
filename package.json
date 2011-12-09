@@ -12,7 +12,8 @@
   "dependencies": {
     "mkdirp": "0.2.1",
     "mysql": "0.9.5",
-    "semver": "1.0.12"
+    "semver": "1.0.12",
+    "sqlite3": "2.1.1"
   },
   "engines": {
     "node": "0.6.5"
