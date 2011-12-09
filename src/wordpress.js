@@ -146,6 +146,21 @@ module.exports = {
 		createOrUpdateMeta( plugin, "owner", owner, fn );
 	}),
 
+	// TODO: optimize with a cache (must be cleared when setting the new versions)
+	getVersions: auto(function( plugin, fn ) {
+		getMeta( plugin, "versions", function( error, versions ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			if ( !versions ) {
+				return fn( null, [] );
+			}
+
+			return fn( null, JSON.parse( versions ) );
+		});
+	}),
+
 	end: function() {
 		if ( db ) {
 			db.end();

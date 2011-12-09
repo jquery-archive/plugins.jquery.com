@@ -286,9 +286,8 @@ function processPlugin( repo, fn ) {
 			return fn( null );
 		}
 
-		var allErrors = [],
-			// TODO: track our actions so we can process metadata in done()
-			plugins = {},
+		// TODO: track our actions so we can process metadata in done()
+		var plugins = {},
 			waiting = versions.length;
 
 		function progress() {
@@ -299,6 +298,7 @@ function processPlugin( repo, fn ) {
 		}
 
 		function done() {
+			// TODO: track invalid versions (user error, not system error)
 			// TODO: update versionless post to have latest version
 			// TODO: update metadata in WP
 			// - don't list pre-release versions that are older than latest stable
@@ -314,43 +314,78 @@ function processPlugin( repo, fn ) {
 					return progress();
 				}
 
-				var package = data.package;
-
 				if ( data.errors.length ) {
-					allErrors.concat( data.errors );
+					// TODO: report errors to user
 					return progress();
 				}
 
-				// find out who owns this plugin
-				// if there is no owner, then set the user as the owner
-				pluginsDb.getOrSetOwner( package.name, repoDetails.userName, function( error, owner ) {
+				wordpress.getVersions( data.package.name, function( error, versions ) {
 					if ( error ) {
 						// TODO: log failure for retry
 						return progress();
 					}
 
-					// the plugin is owned by someone else
-					if ( owner !== repoDetails.userName ) {
+					// this version has already been processed
+					// TODO: when should we start passing around the clean version?
+					if ( versions.indexOf( semver.clean( version ) ) !== -1 ) {
 						return progress();
 					}
 
-					// TODO: track action in sqlite
-
-					// add additional metadata and generate the plugin page
-					package._downloadUrl = repoDetails.downloadUrl( version );
-					_generatePage( package, function( error, data ) {
+					_addPluginVersion( version, data.package, function( error ) {
 						if ( error ) {
-							// TODO: log failure for retry
 							return progress();
 						}
 
-						wordpress.addVersionedPlugin( data, function( error ) {
-							if ( error ) {
-								// TODO: log failure for retry
-							}
-							console.log( "Added " + data.pluginName + " " + data.version );
-							progress();
-						});
+						var name = data.package.name;
+						if ( !plugins[ name ] ) {
+							plugins[ name ] = [];
+						}
+						plugins[ name ].push( semver.clean( version ) );
+						progress();
+					});
+				});
+			});
+		});
+	}
+
+	function _addPluginVersion( version, package, fn ) {
+		// find out who owns this plugin
+		// if there is no owner, then set the user as the owner
+		pluginsDb.getOrSetOwner( package.name, repoDetails.userName, function( error, owner ) {
+			if ( error ) {
+				// TODO: log failure for retry
+				return fn( error );
+			}
+
+			// the plugin is owned by someone else
+			if ( owner !== repoDetails.userName ) {
+				// TODO: report error to user
+				return fn( createError( "Plugin owned by someone else.", "NOT_OWNER", {
+					owner: owner
+				}));
+			}
+
+			pluginsDb.addVersion( repoDetails, package, function( error ) {
+				if ( error ) {
+					// TODO: log failure for retry
+					return fn( error );
+				}
+
+				// add additional metadata and generate the plugin page
+				package._downloadUrl = repoDetails.downloadUrl( version );
+				_generatePage( package, function( error, data ) {
+					if ( error ) {
+						// TODO: log failure for retry
+						return fn( error );
+					}
+
+					wordpress.addVersionedPlugin( data, function( error ) {
+						if ( error ) {
+							// TODO: log failure for retry
+							return fn( error );
+						}
+						console.log( "Added " + data.pluginName + " " + data.version );
+						fn();
 					});
 				});
 			});

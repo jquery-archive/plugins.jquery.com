@@ -67,5 +67,26 @@ var pluginsDb = module.exports = {
 
 			fn( error );
 		});
+	}),
+
+	addVersion: auto(function( repoDetails, package, fn ) {
+		// TODO: verify what data we need to store (build restore functionality to confirm)
+		var data = JSON.stringify({
+			git: repoDetails.git,
+			package: package
+		});
+		// TODO: should we track timestamps so we can replay actions since a specific date?
+		db.run( "INSERT INTO actions( action, data ) VALUES( ?, ? )",
+			[ "addVersion", data ], function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null );
+			});
+	}),
+
+	getAllActions: auto(function( fn ) {
+		db.all( "SELECT * FROM actions", fn );
 	})
 };
