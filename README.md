@@ -88,4 +88,6 @@ From http://plugins.jquery.com.local/wp-admin/
     * Set `dbPassword` to your WordPress MySQL database password
     * Leave `siteId` null (unless you happen to be using a Wordpress multi-site installation locally, in which case supply the site's ID in the multi-site install)
 
-6. `node src/main.js` 
+6. `node src/setup.js`
+
+7. `node src/main.js` 
