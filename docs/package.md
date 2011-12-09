@@ -53,24 +53,8 @@ The name is what your thing is called. Some tips:
 The *most* important things in your package.json are the name and version fields.
 The name and version together form an identifier that is assumed
 to be completely unique. Changes to the plugin should come along with
-changes to the version.
-
-Version must be parseable by
-[node-semver](https://github.com/isaacs/node-semver).
-
-Here's how the node-semver implementation (which the jQuery Plugins Site uses)
-deviates from what's on semver.org:
-
-* Versions can start with "v"
-* A numeric item separated from the main three-number version by a hyphen
-  will be interpreted as a "build" number, and will *increase* the version.
-  But, if the tag is not a number separated by a hyphen, then it's treated
-  as a pre-release tag, and is *less than* the version without a tag.
-  So, `0.1.2-7 > 0.1.2-7-beta > 0.1.2-6 > 0.1.2 > 0.1.2beta`
-
-This is a little bit confusing to explain, but matches what you see in practice
-when people create tags in git like "v1.2.3" and then do "git describe" to generate
-a patch version.
+changes to the version. Version number must be a valid semantic version number
+per semver.org.
 
 See [Specifying Versions](#specifying-versions).
 
