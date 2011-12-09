@@ -78,7 +78,7 @@ a "type" property specifying the type of license and a url property linking to t
     "licenses": [
        {
            "type": "GPLv2",
-           "url": "http://www.example.com/licenses/gpl.html",
+           "url": "http://www.example.com/licenses/gpl.html"
        }
     ]
 
@@ -129,7 +129,8 @@ inside that folder.
 A "person" is an object with a "name" field and optionally "url" and
 "email", like this:
 
-    { "name" : "Barney Rubble",
+    {
+      "name" : "Barney Rubble",
       "email" : "b@rubble.com",
       "url" : "http://barnyrubble.tumblr.com/"
     }
