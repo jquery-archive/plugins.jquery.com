@@ -6,7 +6,7 @@ var fs = require( "fs" ),
 Handlebars.registerHelper( "dependencyList", function() {
 	var dependencies = this.dependencies;
 	return new Handlebars.SafeString( "<ul>" + Object.keys( dependencies ).map(function( dependency ) {
-		return "<li>" + dependency + ": " + dependencies[ dependency ] + "</li>";
+		return "<li><a href=/" + dependency + "><b>" + dependency + "</b></a> (" + dependencies[ dependency ] + ")</li>";
 	}) + "</ul>" );
 });
 
@@ -18,8 +18,8 @@ Handlebars.registerHelper( "allContributors", function() {
 
 Handlebars.registerHelper( "licenses", function() {
 	return new Handlebars.SafeString( this.licenses.map(function( license ) {
-		return "<a href='" + license.url + "'>" + license.type + "</a>";
-	}).join( ", " ));
+		return "<a href='" + license.url + "'><b>" + license.type + "</b></a>";
+	}).join( " or " ));
 });
 
 Handlebars.registerHelper( "person", function( person ) {

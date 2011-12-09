@@ -377,6 +377,7 @@ function processPlugin( repo, fn ) {
 				// add additional metadata and generate the plugin page
 				var pluginData = Object.create( package );
 				pluginData._downloadUrl = repoDetails.downloadUrl( version );
+				pluginData.url = repoDetails.url;
 				generatePage( pluginData, function( error, page ) {
 					if ( error ) {
 						// TODO: log failure for retry
