@@ -217,3 +217,47 @@ The following are equivalent:
 
 You may not supply a comparator with a version containing an x. Any
 digits after the first "x" are ignored.
+
+## <a href="sample">Sample package.json</a>
+
+```json
+{
+    "name": "color",
+    "version": "2.0.0b1",
+    "title": "jQuery.Color()",
+    "author": {
+        "name": "John Resig",
+        "url": "https://github.com/jeresig"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "MIT-LICENSE.txt"
+        },
+        {
+            "type": "GPL",
+            "url": "GPL-LICENSE.txt"
+        }
+    ],
+    "dependencies": {
+        "jquery": "1"
+    },
+    "description": "The main purpose of this plugin to animate color properties on elements using jQuery's .animate()",
+    "keywords": [
+        "color",
+        "animate",
+        "rgba",
+        "hsla"
+    ],
+    "homepage": "https://github.com/jquery/jquery-color",
+    "contributors": [
+        {
+            "name": "Corey Frang",
+            "url": "https://github.com/gnarf37"
+        }
+    ]
+    "files": [
+        "jquery.color.js"
+    ]
+}
+```
