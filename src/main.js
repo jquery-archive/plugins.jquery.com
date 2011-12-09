@@ -384,7 +384,6 @@ function processPlugin( repo, fn ) {
 						return fn( error );
 					}
 
-					// TODO: store package.json as metadata on post
 					wordpress.addVersionedPlugin( version, package, page, function( error ) {
 						if ( error ) {
 							// TODO: log failure for retry
