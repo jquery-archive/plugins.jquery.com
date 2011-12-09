@@ -255,7 +255,7 @@ digits after the first "x" are ignored.
             "name": "Corey Frang",
             "url": "https://github.com/gnarf37"
         }
-    ]
+    ],
     "files": [
         "jquery.color.js"
     ]
