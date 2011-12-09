@@ -18,7 +18,7 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 * jQuery's [web-base-template](https://github.com/jquery/web-base-template)
 * Web server (such as Apache)
 * PHP
-* MySql
+* MySQL
 * WordPress
 * node
 * git
@@ -27,13 +27,15 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 ### web-base-template
 
-Download or clone web-base-template
+1. Download or clone web-base-template
 
-`git clone git://github.com/jquery/web-base-template.git`
+    * `git clone git://github.com/jquery/web-base-template.git`
 
 #### HOSTS
 
-Add a `plugins.jquery.com.local` entry in /etc/hosts
+1. Add a `plugins.jquery.com.local` entry in /etc/hosts
+
+    * `127.0.0.1 plugins.jquery.com.local`
 
 #### WordPress
 
@@ -78,16 +80,12 @@ From http://plugins.jquery.com.local/wp-admin/
 
 3. `npm install`
 
-4. `mkdir -p tmp/plugin-repos`
+4. `cp src/config-sample.json src/config.json`
 
-5. `cp src/config-sample.json src/config.json`
-
-6. Edit src/config.json
-    * Set `dbHost` to the hostname of your WordPress MySQL server
-    * Set `dbPort` to your MySQL port (usually 3306)
-    * Set `dbName` to the MySQL user name
-    * Set `dbUser` to the MySQL password
+5. Edit src/config.json
+    * Set `dbName` to your WordPress MySQL database name
+    * Set `dbUser` to your WordPress MySQL database user
+    * Set `dbPassword` to your WordPress MySQL database password
     * Leave `siteId` null (unless you happen to be using a Wordpress multi-site installation locally, in which case supply the site's ID in the multi-site install)
 
-7. `node src/main.js` 
-
+6. `node src/main.js` 

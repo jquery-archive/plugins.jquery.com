@@ -1,9 +1,10 @@
 var exec = require( "child_process" ).exec,
 	fs = require( "fs" ),
 	mkdirp = require( "mkdirp" ),
-	template = require( "./template" ),
 	semver = require( "semver" ),
-	wordpress = require( "./wordpress" )
+	template = require( "./template" ),
+	wordpress = require( "./wordpress" ),
+	pluginsDb = require( "./pluginsdb" ),
 	config = require( "./config" );
 
 
@@ -234,8 +235,6 @@ function validatePackageJson( package, version ) {
 		errors.push( "Missing required dependency: jquery." );
 	}
 
-	// TODO: validate repo (must match actual GitHub repo)
-
 	return errors;
 }
 
@@ -284,11 +283,11 @@ function processPlugin( repo, fn ) {
 		}
 
 		if ( !versions.length ) {
-			return fn( createError( "No semver tags.", "NO_SEMVER_TAGS" ) );
+			return fn( null );
 		}
 
-		// TODO: add plugin to database
-		var allErrors = [],
+		// TODO: track our actions so we can process metadata in done()
+		var plugins = {},
 			waiting = versions.length;
 
 		function progress() {
@@ -299,6 +298,7 @@ function processPlugin( repo, fn ) {
 		}
 
 		function done() {
+			// TODO: track invalid versions (user error, not system error)
 			// TODO: update versionless post to have latest version
 			// TODO: update metadata in WP
 			// - don't list pre-release versions that are older than latest stable
@@ -315,25 +315,77 @@ function processPlugin( repo, fn ) {
 				}
 
 				if ( data.errors.length ) {
-					allErrors.concat( data.errors );
+					// TODO: report errors to user
 					return progress();
 				}
 
-				// TODO: verify user is owner of plugin
-
-				data.package._downloadUrl = repoDetails.downloadUrl( version );
-				_generatePage( data.package, function( error, data ) {
+				wordpress.getVersions( data.package.name, function( error, versions ) {
 					if ( error ) {
 						// TODO: log failure for retry
 						return progress();
 					}
 
+					// this version has already been processed
+					// TODO: when should we start passing around the clean version?
+					if ( versions.indexOf( semver.clean( version ) ) !== -1 ) {
+						return progress();
+					}
+
+					_addPluginVersion( version, data.package, function( error ) {
+						if ( error ) {
+							return progress();
+						}
+
+						var name = data.package.name;
+						if ( !plugins[ name ] ) {
+							plugins[ name ] = [];
+						}
+						plugins[ name ].push( semver.clean( version ) );
+						progress();
+					});
+				});
+			});
+		});
+	}
+
+	function _addPluginVersion( version, package, fn ) {
+		// find out who owns this plugin
+		// if there is no owner, then set the user as the owner
+		pluginsDb.getOrSetOwner( package.name, repoDetails.userName, function( error, owner ) {
+			if ( error ) {
+				// TODO: log failure for retry
+				return fn( error );
+			}
+
+			// the plugin is owned by someone else
+			if ( owner !== repoDetails.userName ) {
+				// TODO: report error to user
+				return fn( createError( "Plugin owned by someone else.", "NOT_OWNER", {
+					owner: owner
+				}));
+			}
+
+			pluginsDb.addVersion( repoDetails, package, function( error ) {
+				if ( error ) {
+					// TODO: log failure for retry
+					return fn( error );
+				}
+
+				// add additional metadata and generate the plugin page
+				package._downloadUrl = repoDetails.downloadUrl( version );
+				_generatePage( package, function( error, data ) {
+					if ( error ) {
+						// TODO: log failure for retry
+						return fn( error );
+					}
+
 					wordpress.addVersionedPlugin( data, function( error ) {
 						if ( error ) {
 							// TODO: log failure for retry
+							return fn( error );
 						}
 						console.log( "Added " + data.pluginName + " " + data.version );
-						progress();
+						fn();
 					});
 				});
 			});
