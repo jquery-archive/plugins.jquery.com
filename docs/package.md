@@ -129,9 +129,9 @@ inside that folder.
 A "person" is an object with a "name" field and optionally "url" and
 "email", like this:
 
-    { "name" : "Barney Rubble"
-    , "email" : "b@rubble.com"
-    , "url" : "http://barnyrubble.tumblr.com/"
+    { "name" : "Barney Rubble",
+      "email" : "b@rubble.com",
+      "url" : "http://barnyrubble.tumblr.com/"
     }
 
 Both the email and url are optional.
