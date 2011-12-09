@@ -151,7 +151,6 @@ function getVersions( repoDetails, fn ) {
 			if ( version.charAt( 0 ) === "v" ) {
 				version = version.substring( 1 );
 			}
-			// TODO: disallow builds
 
 			// tag is not a clean version number
 			if ( semver.clean( version ) !== version ) {
@@ -301,11 +300,50 @@ function processPlugin( repo, fn ) {
 			}
 		}
 
+		// TODO: clean up this code
 		function done() {
-			// TODO: update versionless post to have latest version
-			// TODO: update metadata in WP
-			// - don't list pre-release versions that are older than latest stable
-			// - list pre-release versions greater than latest stable
+			for ( var plugin in plugins ) {
+				(function( plugin ) {
+					var latest, filteredVersions,
+						newVersions = plugins[ plugin ];
+					wordpress.getVersions( plugin, function( error, versions ) {
+						if ( error ) {
+							// TODO: log failure for retry
+							return _done();
+						}
+
+						versions = versions.concat( newVersions )
+							.sort( semver.compare ).reverse();
+						function isStable( version ) {
+							return /^\d+\.\d+\.\d+$/.test( version );
+						}
+						filteredVersions = versions.filter(function( version ) {
+							if ( latest ) {
+								return isStable( version );
+							}
+							if ( isStable( version ) ) {
+								latest = version;
+							}
+							return true;
+						});
+						// no stable relases yet, show latest pre-release
+						if ( !latest ) {
+							latest = filteredVersions[ 0 ];
+						}
+						// TODO: set contents of versionless post
+						wordpress.setVersions( plugin, filteredVersions, latest, function( error ) {
+							if ( error ) {
+								// TODO: log failure for retry
+							}
+
+							return _done();
+						});
+					});
+				})( plugin );
+			}
+		}
+
+		function _done() {
 			wordpress.end();
 			fn();
 		}
@@ -322,31 +360,17 @@ function processPlugin( repo, fn ) {
 					return progress();
 				}
 
-				wordpress.getVersions( data.package.name, function( error, versions ) {
+				_addPluginVersion( version, data.package, function( error ) {
 					if ( error ) {
-						// TODO: log failure for retry
 						return progress();
 					}
 
-					// this version has already been processed
-					// TODO: when should we start passing around the clean version?
-					if ( versions.indexOf( semver.clean( version ) ) !== -1 ) {
-						return progress();
+					var name = data.package.name;
+					if ( !plugins[ name ] ) {
+						plugins[ name ] = [];
 					}
-
-					_addPluginVersion( version, data.package, function( error ) {
-						if ( error ) {
-							console.log( error );
-							return progress();
-						}
-
-						var name = data.package.name;
-						if ( !plugins[ name ] ) {
-							plugins[ name ] = [];
-						}
-						plugins[ name ].push( semver.clean( version ) );
-						progress();
-					});
+					plugins[ name ].push( semver.clean( version ) );
+					progress();
 				});
 			});
 		});

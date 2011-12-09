@@ -51,7 +51,7 @@ function createOrUpdatePost( name, title, content, fn ) {
 		});
 }
 
-function createOrUpdateMeta( plugin, key, value, fn ) {
+function setMeta( plugin, key, value, fn ) {
 	getPostId( plugin, function( error, id ) {
 		if ( error ) {
 			return fn( error );
@@ -138,21 +138,10 @@ module.exports = {
 				return fn( error );
 			}
 
-			createOrUpdateMeta( postName, "package_json", JSON.stringify( package ), fn );
+			setMeta( postName, "package_json", JSON.stringify( package ), fn );
 		});
 	}),
 
-	// TODO: check if this is needed in the end
-	getOwner: auto(function( plugin, fn ) {
-		getMeta( plugin, "owner", fn );
-	}),
-
-	// TODO: check if this is needed in the end
-	setOwner: auto(function( plugin, owner, fn ) {
-		createOrUpdateMeta( plugin, "owner", owner, fn );
-	}),
-
-	// TODO: optimize with a cache (must be cleared when setting the new versions)
 	getVersions: auto(function( plugin, fn ) {
 		getMeta( plugin, "versions", function( error, versions ) {
 			if ( error ) {
@@ -164,6 +153,16 @@ module.exports = {
 			}
 
 			return fn( null, JSON.parse( versions ) );
+		});
+	}),
+
+	setVersions: auto(function( plugin, versions, latest, fn ) {
+		createOrUpdatePost( plugin, plugin, "", function( error ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			setMeta( plugin, "versions", JSON.stringify( versions ), fn );
 		});
 	}),
 
