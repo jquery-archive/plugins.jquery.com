@@ -207,7 +207,9 @@ function validatePackageJson( package, version ) {
 
 	if ( !package.version ) {
 		errors.push( "Missing required field: version." );
-	} else if ( semver.clean( package.version ) !== semver.clean( version ) ) {
+	} else if ( package.version !== semver.clean( package.version ) ) {
+		errors.push( "Package.json version (" + package.version + ") is invalid." );
+	} else if ( package.version !== semver.clean( version ) ) {
 		errors.push( "Package.json version (" + package.version + ") does not match tag (" + version + ")." );
 	}
 
@@ -333,6 +335,7 @@ function processPlugin( repo, fn ) {
 
 					_addPluginVersion( version, data.package, function( error ) {
 						if ( error ) {
+							console.log( error );
 							return progress();
 						}
 
@@ -372,38 +375,24 @@ function processPlugin( repo, fn ) {
 				}
 
 				// add additional metadata and generate the plugin page
-				package._downloadUrl = repoDetails.downloadUrl( version );
-				_generatePage( package, function( error, data ) {
+				var pluginData = Object.create( package );
+				pluginData._downloadUrl = repoDetails.downloadUrl( version );
+				generatePage( pluginData, function( error, page ) {
 					if ( error ) {
 						// TODO: log failure for retry
 						return fn( error );
 					}
 
-					wordpress.addVersionedPlugin( data, function( error ) {
+					// TODO: store package.json as metadata on post
+					wordpress.addVersionedPlugin( version, package, page, function( error ) {
 						if ( error ) {
 							// TODO: log failure for retry
 							return fn( error );
 						}
-						console.log( "Added " + data.pluginName + " " + data.version );
+						console.log( "Added " + package.name + " " + package.version );
 						fn();
 					});
 				});
-			});
-		});
-	}
-
-	function _generatePage( package, fn ) {
-		generatePage( package, function( error, page ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			fn( null, {
-				userName: repoDetails.userName,
-				pluginName: package.name,
-				pluginTitle: package.title,
-				content: page,
-				version: semver.clean( package.version )
 			});
 		});
 	}

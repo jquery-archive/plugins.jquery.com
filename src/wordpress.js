@@ -131,9 +131,15 @@ function auto( fn ) {
 
 
 module.exports = {
-	addVersionedPlugin: auto(function( data, fn ) {
-		createOrUpdatePost( data.pluginName + "-" + data.version,
-			data.pluginTitle, data.content, fn );
+	addVersionedPlugin: auto(function( version, package, content, fn ) {
+		var postName = package.name + "-" + package.version;
+		createOrUpdatePost( postName, package.title, content, function( error ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			createOrUpdateMeta( postName, "package_json", JSON.stringify( package ), fn );
+		});
 	}),
 
 	// TODO: check if this is needed in the end
