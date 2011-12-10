@@ -39,12 +39,12 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 #### WordPress
 
-1. Install a web server (such as Apache), PHP, and MySQL.  
+1. Install and run a web server (such as Apache), PHP, and MySQL.
 
 2. Follow http://codex.wordpress.org/Installing_WordPress#Famous_5-Minute_Install
 
-3. Redirect your WordPress install to use the web-base-template's theme and config
-    * `rm -rf wordpress/wp-content`
+3. Redirect your WordPress install to use the web-base-template's theme and config (replacing "[YourWordPressInstallDirectory]" with the actual name of the directory where you installed WordPress)
+    * `rm -rf [YourWordPressInstallDirectory]/wp-content`
     * `ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
 
 #### WordPress config
@@ -90,4 +90,4 @@ From http://plugins.jquery.com.dev/wp-admin/
 
 6. `node src/setup.js`
 
-7. `node src/main.js` 
+7. `node src/main.js`
