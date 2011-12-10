@@ -33,9 +33,9 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 #### HOSTS
 
-1. Add a `plugins.jquery.com.local` entry in /etc/hosts
+1. Add a `plugins.jquery.com.dev` entry in /etc/hosts
 
-    * `127.0.0.1 plugins.jquery.com.local`
+    * `127.0.0.1 plugins.jquery.com.dev`
 
 #### WordPress
 
@@ -49,7 +49,7 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 #### WordPress config
 
-From http://plugins.jquery.com.local/wp-admin/
+From http://plugins.jquery.com.dev/wp-admin/
 
 1. Activate the plugins-jquery-com theme
 
