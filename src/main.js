@@ -5,7 +5,8 @@ var exec = require( "child_process" ).exec,
 	template = require( "./template" ),
 	wordpress = require( "./wordpress" ),
 	pluginsDb = require( "./pluginsdb" ),
-	config = require( "./config" );
+	config = require( "./config" ),
+	http = require("http");
 
 
 
@@ -37,7 +38,7 @@ var reGithubSsh = /^git@github\.com:([^/]+)\/(.+)\.git$/,
 	reGithubGit = /^git:\/\/github\.com\/([^/]+)\/([^/]+)\.git$/,
 	reGithubSite = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)(\/.*)?$/;
 
-function getRepoDetails( repo ) {
+function getRepoDetails(repo, fn) {
 	var userName, repoName, partialPath,
 		matches =
 			reGithubSsh.exec( repo ) ||
@@ -49,24 +50,48 @@ function getRepoDetails( repo ) {
 		userName = matches[ 1 ];
 		repoName = matches[ 2 ];
 		partialPath = "/" + userName + "/" + repoName;
-		return {
+		var data = {
 			userName: userName,
 			repoName: repoName,
 			url: "http://github.com" + partialPath,
 			git: "git://github.com" + partialPath + ".git",
+			forks: "?",
+			watchers: "?",
 			downloadUrl: function( version ) {
 				return "https://github.com" + partialPath + "/zipball/" + version
 			},
-			path: config.repoDir + partialPath
+			path: config.repoDir + partialPath,
 		};
+		getGitHubStats(partialPath, function(apiResult) {
+			if(apiResult) {
+				data.forks = apiResult.forks;
+				data.watchers = apiResult.watchers;
+			}
+			fn(data);
+		});
 	}
-
-	return null;
 }
 
-
-
-
+function getGitHubStats(partialPath, fn) {
+	var apiHost = "github.com";
+	var apiScript = "/api/v2/json/repos/show" + partialPath;
+	var apiResult = { watchers: "?", forks: "?" };
+	var client = http.createClient(80, apiHost);
+	var request = client.request("GET", apiScript, {"host": apiHost});
+	request.addListener("response", function(response) {
+		var body = "";
+		response.addListener("data", function(data) {
+			body += data;
+		});
+		response.addListener("end", function() {
+			var json = JSON.parse(body);
+			apiResult.forks = json.repository.forks;
+			apiResult.watchers = json.repository.watchers;
+			fn(apiResult);
+		});
+	});
+	request.end();
+}
 
 function fetchPlugin( repoDetails, fn ) {
 	// make sure the user's directory exists first
@@ -249,10 +274,6 @@ function validatePackageJson( package, version ) {
 	return errors;
 }
 
-
-
-
-
 function generatePage( package, fn ) {
 	template.get( "page", function( error, template ) {
 		if ( error ) {
@@ -269,170 +290,161 @@ function generatePage( package, fn ) {
 	});
 }
 
-
-
-
-
 function processPlugin( repo, fn ) {
-	var repoDetails = getRepoDetails( repo.url );
+	getRepoDetails(repo.url, function(repoDetails) {
 
-	if ( !repoDetails ) {
-		return fn( createError( "Could not parse '" + repoUrl + "'.", "URL_PARSE" ) );
-	}
-
-	fetchPlugin( repoDetails, function( error, versions ) {
-		if ( error ) {
-			return fn( error );
+		if ( !repoDetails ) {
+			return fn( createError( "Could not parse '" + repo.url + "'.", "URL_PARSE" ) );
 		}
 
-		if ( !versions.length ) {
-			return fn( null );
-		}
-
-		// TODO: track our actions so we can process metadata in done()
-		var plugins = {},
-			waiting = versions.length;
-
-		function progress() {
-			waiting--;
-			if ( !waiting ) {
-				done();
-			}
-		}
-
-		// TODO: clean up this code
-		function done() {
-			for ( var plugin in plugins ) {
-				(function( plugin ) {
-					var latest, filteredVersions,
-						newVersions = plugins[ plugin ];
-					wordpress.getVersions( plugin, function( error, versions ) {
-						if ( error ) {
-							// TODO: log failure for retry
-							return _done();
-						}
-
-						versions = versions.concat( newVersions )
-							.sort( semver.compare ).reverse();
-						function isStable( version ) {
-							return /^\d+\.\d+\.\d+$/.test( version );
-						}
-						filteredVersions = versions.filter(function( version ) {
-							if ( latest ) {
-								return isStable( version );
-							}
-							if ( isStable( version ) ) {
-								latest = version;
-							}
-							return true;
-						});
-						// no stable relases yet, show latest pre-release
-						if ( !latest ) {
-							latest = filteredVersions[ 0 ];
-						}
-						// TODO: set contents of versionless post
-						wordpress.setVersions( plugin, filteredVersions, latest, function( error ) {
-							if ( error ) {
-								// TODO: log failure for retry
-							}
-
-							return _done();
-						});
-					});
-				})( plugin );
-			}
-		}
-
-		function _done() {
-			wordpress.end();
-			fn();
-		}
-
-		versions.forEach(function( version ) {
-			validateVersion( repoDetails, version, function( error, data ) {
-				if ( error ) {
-					// TODO: log failure for retry
-					return progress();
-				}
-
-				if ( data.errors.length ) {
-					// TODO: report errors to user
-					return progress();
-				}
-
-				_addPluginVersion( version, data.package, function( error ) {
-					if ( error ) {
-						return progress();
-					}
-
-					var name = data.package.name;
-					if ( !plugins[ name ] ) {
-						plugins[ name ] = [];
-					}
-					plugins[ name ].push( semver.clean( version ) );
-					progress();
-				});
-			});
-		});
-	});
-
-	function _addPluginVersion( version, package, fn ) {
-		// find out who owns this plugin
-		// if there is no owner, then set the user as the owner
-		pluginsDb.getOrSetOwner( package.name, repoDetails.userName, function( error, owner ) {
+		fetchPlugin( repoDetails, function( error, versions ) {
 			if ( error ) {
-				// TODO: log failure for retry
 				return fn( error );
 			}
 
-			// the plugin is owned by someone else
-			if ( owner !== repoDetails.userName ) {
-				// TODO: report error to user
-				return fn( createError( "Plugin owned by someone else.", "NOT_OWNER", {
-					owner: owner
-				}));
+			if ( !versions.length ) {
+				return fn( null );
 			}
 
-			pluginsDb.addVersion( repoDetails, package, function( error ) {
+			// TODO: track our actions so we can process metadata in done()
+			var plugins = {},
+				waiting = versions.length;
+
+			function progress() {
+				waiting--;
+				if ( !waiting ) {
+					done();
+				}
+			}
+
+			// TODO: clean up this code
+			function done() {
+				for ( var plugin in plugins ) {
+					(function( plugin ) {
+						var latest, filteredVersions,
+							newVersions = plugins[ plugin ];
+						wordpress.getVersions( plugin, function( error, versions ) {
+							if ( error ) {
+								// TODO: log failure for retry
+								return _done();
+							}
+
+							versions = versions.concat( newVersions )
+								.sort( semver.compare ).reverse();
+							function isStable( version ) {
+								return /^\d+\.\d+\.\d+$/.test( version );
+							}
+							filteredVersions = versions.filter(function( version ) {
+								if ( latest ) {
+									return isStable( version );
+								}
+								if ( isStable( version ) ) {
+									latest = version;
+								}
+								return true;
+							});
+							// no stable relases yet, show latest pre-release
+							if ( !latest ) {
+								latest = filteredVersions[ 0 ];
+							}
+							// TODO: set contents of versionless post
+							wordpress.setVersions( plugin, filteredVersions, latest, function( error ) {
+								if ( error ) {
+									// TODO: log failure for retry
+								}
+
+								return _done();
+							});
+						});
+					})( plugin );
+				}
+			}
+
+			function _done() {
+				wordpress.end();
+				fn();
+			}
+
+			versions.forEach(function( version ) {
+				validateVersion( repoDetails, version, function( error, data ) {
+					if ( error ) {
+						// TODO: log failure for retry
+						return progress();
+					}
+
+					if ( data.errors.length ) {
+						// TODO: report errors to user
+						return progress();
+					}
+
+					_addPluginVersion( version, data.package, function( error ) {
+						if ( error ) {
+							return progress();
+						}
+
+						var name = data.package.name;
+						if ( !plugins[ name ] ) {
+							plugins[ name ] = [];
+						}
+						plugins[ name ].push( semver.clean( version ) );
+						progress();
+					});
+				});
+			});
+		});
+
+		function _addPluginVersion( version, package, fn ) {
+			// find out who owns this plugin
+			// if there is no owner, then set the user as the owner
+			pluginsDb.getOrSetOwner( package.name, repoDetails.userName, function( error, owner ) {
 				if ( error ) {
 					// TODO: log failure for retry
 					return fn( error );
 				}
 
-				// add additional metadata and generate the plugin page
-				var pluginData = Object.create( package );
-				pluginData._downloadUrl = repoDetails.downloadUrl( version );
-				pluginData.url = repoDetails.url;
-				generatePage( pluginData, function( error, page ) {
+				// the plugin is owned by someone else
+				if ( owner !== repoDetails.userName ) {
+					// TODO: report error to user
+					return fn( createError( "Plugin owned by someone else.", "NOT_OWNER", {
+						owner: owner
+					}));
+				}
+
+				pluginsDb.addVersion( repoDetails, package, function( error ) {
 					if ( error ) {
 						// TODO: log failure for retry
 						return fn( error );
 					}
 
-					wordpress.addVersionedPlugin( version, package, page, function( error ) {
+					// add additional metadata and generate the plugin page
+					var pluginData = Object.create( package );
+					pluginData._downloadUrl = repoDetails.downloadUrl( version );
+					pluginData.url = repoDetails.url;
+					pluginData.forks = repoDetails.forks;
+					pluginData.watchers = repoDetails.watchers;
+					generatePage( pluginData, function( error, page ) {
 						if ( error ) {
 							// TODO: log failure for retry
 							return fn( error );
 						}
-						console.log( "Added " + package.name + " " + package.version );
-						fn();
+
+						wordpress.addVersionedPlugin( version, package, page, function( error ) {
+							if ( error ) {
+								// TODO: log failure for retry
+								return fn( error );
+							}
+							console.log( "Added " + package.name + " " + package.version );
+							fn();
+						});
 					});
 				});
 			});
-		});
-	}
+		}
+	
+	});
 }
 
-
-
-
-
-// TODO: track watchers and forks
-processPlugin({
-	url: "http://github.com/scottgonzalez/temp-jquery-foo",
-	watchers: 25,
-	forks: 3
-}, function( error, data ) {
+processPlugin({	url: "http://github.com/scottgonzalez/temp-jquery-foo" }, function( error, data ) {
 	// TODO: log error to file
 	if ( error ) {
 		console.log( error );
