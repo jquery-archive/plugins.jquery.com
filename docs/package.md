@@ -96,6 +96,8 @@ Libraries such as jQuery or underscore, though not plugins, should be listed as
 dependencies as well. This gives you the flexibility to specify compatible versions
 of each library you depend on.
 
+You must list at least one dependency, `jquery` (note that it's lower-case).
+
 ## <a name="field-description">description</a>
 
 Put a description in it. It's a string. This helps people discover your
