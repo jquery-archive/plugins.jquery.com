@@ -42,7 +42,7 @@ The name is what your thing is called. Some tips:
   be rejected. Also, it can't start with a dot or an underscore. The jQuery Plugins
   Site is UTF-8.
 * The name should be short, but also reasonably descriptive.
-* You may want to check [plugins.txt](/jquery/plugins.jquery.com/blob/master/plugins.txt)
+* You may want to check [the plugins site](http://plugins.jquery.com/)
   to see if there's something by that name already, before you get too attached to it.
 * If you have a plugin with the same name as a plugin already in the jQuery Plugins
   Site, either consider renaming your plugin or namespace it. For example, jQuery UI
