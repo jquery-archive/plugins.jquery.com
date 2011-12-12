@@ -2,7 +2,6 @@ var mysql = require( "mysql" ),
 	config = require( "./config" );
 
 var db,
-	// TODO: make sure all queries support siteId
 	postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
 	postmetaTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "postmeta";
 
