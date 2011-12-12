@@ -1,174 +1,16 @@
-var exec = require( "child_process" ).exec,
-	fs = require( "fs" ),
-	mkdirp = require( "mkdirp" ),
-	semver = require( "semver" ),
+var semver = require( "semver" ),
 	template = require( "./template" ),
 	wordpress = require( "./wordpress" ),
 	pluginsDb = require( "./pluginsdb" ),
+	service = require( "./service.js" ),
 	config = require( "./config" );
 
 
 
 
 
-function dirname( path ) {
-	path = path.split( "/" );
-	path.pop();
-	return path.join( "/" );
-}
-
-function createError( message, code, data ) {
-	var error = new Error( message );
-	if ( code ) {
-		error.code = code;
-	}
-	if ( data ) {
-		error.data = data;
-	}
-	return error;
-}
-
-
-
-
-
-var reGithubSsh = /^git@github\.com:([^/]+)\/(.+)\.git$/,
-	reGithubHttp = /^\w+?:\/\/\w+@github\.com\/([^/]+)\/([^/]+)\.git$/,
-	reGithubGit = /^git:\/\/github\.com\/([^/]+)\/([^/]+)\.git$/,
-	reGithubSite = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)(\/.*)?$/;
-
-function getRepoDetails( repo ) {
-	var userName, repoName, partialPath,
-		matches =
-			reGithubSsh.exec( repo ) ||
-			reGithubHttp.exec( repo ) ||
-			reGithubGit.exec( repo ) ||
-			reGithubSite.exec( repo );
-
-	if ( matches ) {
-		userName = matches[ 1 ];
-		repoName = matches[ 2 ];
-		partialPath = "/" + userName + "/" + repoName;
-		return {
-			userName: userName,
-			repoName: repoName,
-			url: "http://github.com" + partialPath,
-			git: "git://github.com" + partialPath + ".git",
-			downloadUrl: function( version ) {
-				return "https://github.com" + partialPath + "/zipball/" + version
-			},
-			path: config.repoDir + partialPath
-		};
-	}
-
-	return null;
-}
-
-
-
-
-
-function fetchPlugin( repoDetails, fn ) {
-	// make sure the user's directory exists first
-	mkdirp( dirname( repoDetails.path ), 0755, function( error ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		createOrUpdateRepo( repoDetails, fn );
-	});
-}
-
-function createOrUpdateRepo( repoDetails, fn ) {
-	fs.stat( repoDetails.path, function( error ) {
-		// repo already exists
-		if ( !error ) {
-			return updateRepo( repoDetails, fn );
-		}
-
-		// error other than repo not existing
-		if ( error.code !== "ENOENT" ) {
-			return fn( error );
-		}
-
-		createRepo( repoDetails, fn );
-	});
-}
-
-function createRepo( repoDetails, fn ) {
-	exec( "git clone " + repoDetails.git + " " + repoDetails.path, function( error, stdout, stderr ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		// TODO: handle stderr
-
-		getVersions( repoDetails, fn );
-	});
-}
-
-function updateRepo( repoDetails, fn ) {
-	getVersions( repoDetails, function( error, prevVersions ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		exec( "git fetch -t", { cwd: repoDetails.path },
-			function( error, stdout, stderr ) {
-				if ( error ) {
-					return fn( error );
-				}
-
-				// TODO: handle stderr
-
-				getVersions( repoDetails, function( error, versions ) {
-					if ( error ) {
-						return fn( error );
-					}
-
-					fn( null, versions.filter(function( version ) {
-						return prevVersions.indexOf( version ) === -1;
-					}));
-				});
-			});
-	});
-}
-
-
-
-
-
-function getVersions( repoDetails, fn ) {
-	exec( "git tag", { cwd: repoDetails.path }, function( error, stdout, stderr ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		var tags = stdout.split( "\n" );
-		tags.pop();
-		tags = tags.filter(function( version ) {
-			// we allow a v prefix, but nothing else
-			if ( version.charAt( 0 ) === "v" ) {
-				version = version.substring( 1 );
-			}
-
-			// tag is not a clean version number
-			if ( semver.clean( version ) !== version ) {
-				return false;
-			}
-
-			return semver.valid( version );
-		});
-		fn( null, tags );
-	});
-}
-
-
-
-
-
-function validateVersion( repoDetails, version, fn ) {
-	getPackageJson( repoDetails, version, function( error, package ) {
+function validateVersion( repo, version, fn ) {
+	repo.getPackageJson( version, function( error, package ) {
 		if ( error ) {
 			return fn( error );
 		}
@@ -177,31 +19,6 @@ function validateVersion( repoDetails, version, fn ) {
 			package: package,
 			errors: validatePackageJson( package, version )
 		});
-	});
-}
-
-function getPackageJson( repoDetails, version, fn ) {
-	exec( "git show " + version + ":package.json", { cwd: repoDetails.path }, function( error, stdout, stderr ) {
-		// this will also result in an error being passed, so we check stderr first
-		if ( stderr && stderr.substring( 0, 41 ) === "fatal: Path 'package.json' does not exist" ) {
-			return fn( createError( "No package.json for " + version + ".", "NO_PACKAGE_JSON", {
-				version: version
-			}));
-		}
-
-		if ( error ) {
-			return fn( error );
-		}
-
-		try {
-			var package = JSON.parse( stdout );
-		} catch( error ) {
-			return fn( createError( "Could not parse package.json for " + version + ".", "INVALID_PACKAGE_JSON", {
-				version: version
-			}));
-		}
-
-		return fn( null, package );
 	});
 }
 
@@ -273,14 +90,14 @@ function generatePage( package, fn ) {
 
 
 
-function processPlugin( repo, fn ) {
-	var repoDetails = getRepoDetails( repo.url );
+function processPlugin( data, fn ) {
+	var repo = service.getRepo( data );
 
-	if ( !repoDetails ) {
-		return fn( createError( "Could not parse '" + repoUrl + "'.", "URL_PARSE" ) );
+	if ( !repo ) {
+		return fn( new Error( "Could not parse request." ) );
 	}
 
-	fetchPlugin( repoDetails, function( error, versions ) {
+	repo.getNewVersions(function( error, versions ) {
 		if ( error ) {
 			return fn( error );
 		}
@@ -348,7 +165,7 @@ function processPlugin( repo, fn ) {
 		}
 
 		versions.forEach(function( version ) {
-			validateVersion( repoDetails, version, function( error, data ) {
+			validateVersion( repo, version, function( error, data ) {
 				if ( error ) {
 					// TODO: log failure for retry
 					return progress();
@@ -378,21 +195,19 @@ function processPlugin( repo, fn ) {
 	function _addPluginVersion( version, package, fn ) {
 		// find out who owns this plugin
 		// if there is no owner, then set the user as the owner
-		pluginsDb.getOrSetOwner( package.name, repoDetails.userName, function( error, owner ) {
+		pluginsDb.getOrSetOwner( package.name, repo.userName, function( error, owner ) {
 			if ( error ) {
 				// TODO: log failure for retry
 				return fn( error );
 			}
 
 			// the plugin is owned by someone else
-			if ( owner !== repoDetails.userName ) {
+			if ( owner !== repo.userName ) {
 				// TODO: report error to user
-				return fn( createError( "Plugin owned by someone else.", "NOT_OWNER", {
-					owner: owner
-				}));
+				return fn( new Error( "Plugin owned by someone else." ) );
 			}
 
-			pluginsDb.addVersion( repoDetails, package, function( error ) {
+			pluginsDb.addVersion( repo, package, function( error ) {
 				if ( error ) {
 					// TODO: log failure for retry
 					return fn( error );
@@ -400,8 +215,8 @@ function processPlugin( repo, fn ) {
 
 				// add additional metadata and generate the plugin page
 				var pluginData = Object.create( package );
-				pluginData._downloadUrl = repoDetails.downloadUrl( version );
-				pluginData.url = repoDetails.url;
+				pluginData._downloadUrl = repo.downloadUrl( version );
+				pluginData.url = repo.siteUrl;
 				generatePage( pluginData, function( error, page ) {
 					if ( error ) {
 						// TODO: log failure for retry
