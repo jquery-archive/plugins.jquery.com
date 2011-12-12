@@ -40,6 +40,7 @@ function createOrUpdatePost( name, title, content, fn ) {
 			}
 
 			if ( !id ) {
+				// TODO: set post_type = "page"
 				db.query( "INSERT INTO `" + postsTable + "` " +
 					"SET `post_name` = ?, `post_title` = ?, `post_content` = ?",
 					[ name, title, content ], fn );
@@ -158,12 +159,24 @@ module.exports = {
 	}),
 
 	setVersions: auto(function( plugin, versions, latest, fn ) {
-		createOrUpdatePost( plugin, plugin, "", function( error ) {
-			if ( error ) {
-				return fn( error );
-			}
+		var postName = plugin + "-" + latest;
+		db.query( "SELECT `post_title`, `post_content` FROM `" + postsTable + "` WHERE `post_name` = ?",
+			[ postName ], function( error, rows ) {
+				if ( error ) {
+					return fn( error );
+				}
 
-			setMeta( plugin, "versions", JSON.stringify( versions ), fn );
+				if ( !rows.length ) {
+					return fn( new Error( "No post for " + postName ) );
+				}
+
+				createOrUpdatePost( plugin, rows[ 0 ].post_title, rows[ 0 ].post_content, function( error ) {
+					if ( error ) {
+						return fn( error );
+					}
+
+					setMeta( plugin, "versions", JSON.stringify( versions ), fn );
+				});
 		});
 	}),
 

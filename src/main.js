@@ -289,7 +289,6 @@ function processPlugin( repo, fn ) {
 			return fn( null );
 		}
 
-		// TODO: track our actions so we can process metadata in done()
 		var plugins = {},
 			waiting = versions.length;
 
@@ -330,7 +329,7 @@ function processPlugin( repo, fn ) {
 						if ( !latest ) {
 							latest = filteredVersions[ 0 ];
 						}
-						// TODO: set contents of versionless post
+						// TODO: set page parent
 						wordpress.setVersions( plugin, filteredVersions, latest, function( error ) {
 							if ( error ) {
 								// TODO: log failure for retry
