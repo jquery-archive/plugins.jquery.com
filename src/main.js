@@ -217,6 +217,8 @@ function processPlugin( data, fn ) {
 				var pluginData = Object.create( package );
 				pluginData._downloadUrl = repo.downloadUrl( version );
 				pluginData.url = repo.siteUrl;
+				pluginData.forks = repo.forks;
+				pluginData.watchers = repo.watchers;
 				generatePage( pluginData, function( error, page ) {
 					if ( error ) {
 						// TODO: log failure for retry

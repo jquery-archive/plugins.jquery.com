@@ -29,6 +29,8 @@ function GithubRepo( data ) {
 	this.siteUrl = "http://github.com" + partialPath;
 	this.sourceUrl = "git://github.com" + partialPath + ".git";
 	this.path = config.repoDir + partialPath;
+	this.forks = data.forks;
+	this.watchers = data.watchers;
 }
 
 // service interface
