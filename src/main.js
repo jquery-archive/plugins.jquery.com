@@ -1,26 +1,15 @@
 var semver = require( "semver" ),
+	Step = require( "step" ),
+	UserError = require( "./user-error" ),
 	template = require( "./template" ),
 	wordpress = require( "./wordpress" ),
 	pluginsDb = require( "./pluginsdb" ),
-	service = require( "./service.js" ),
+	service = require( "./service" ),
 	config = require( "./config" );
 
 
 
 
-
-function validateVersion( repo, version, fn ) {
-	repo.getPackageJson( version, function( error, package ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		fn( null, {
-			package: package,
-			errors: validatePackageJson( package, version )
-		});
-	});
-}
 
 function validatePackageJson( package, version ) {
 	var errors = [];
@@ -97,117 +86,160 @@ function processPlugin( data, fn ) {
 		return fn( new Error( "Could not parse request." ) );
 	}
 
-	repo.getNewVersions(function( error, versions ) {
-		if ( error ) {
-			return fn( error );
-		}
+	Step(
+		// get all new versions of the plugin
+		function() {
+			repo.getNewVersions( this );
+		},
 
-		if ( !versions.length ) {
-			return fn( null );
-		}
-
-		var plugins = {},
-			waiting = versions.length;
-
-		function progress() {
-			waiting--;
-			if ( !waiting ) {
-				done();
-			}
-		}
-
-		// TODO: clean up this code
-		function done() {
-			for ( var plugin in plugins ) {
-				(function( plugin ) {
-					var latest, filteredVersions,
-						newVersions = plugins[ plugin ];
-					wordpress.getVersions( plugin, function( error, versions ) {
-						if ( error ) {
-							// TODO: log failure for retry
-							return _done();
-						}
-
-						versions = versions.concat( newVersions )
-							.sort( semver.compare ).reverse();
-						function isStable( version ) {
-							return /^\d+\.\d+\.\d+$/.test( version );
-						}
-						filteredVersions = versions.filter(function( version ) {
-							if ( latest ) {
-								return isStable( version );
-							}
-							if ( isStable( version ) ) {
-								latest = version;
-							}
-							return true;
-						});
-						// no stable relases yet, show latest pre-release
-						if ( !latest ) {
-							latest = filteredVersions[ 0 ];
-						}
-						// TODO: set page parent
-						wordpress.setVersions( plugin, filteredVersions, latest, function( error ) {
-							if ( error ) {
-								// TODO: log failure for retry
-							}
-
-							return _done();
-						});
-					});
-				})( plugin );
-			}
-		}
-
-		function _done() {
-			wordpress.end();
-			fn();
-		}
-
-		versions.forEach(function( version ) {
-			validateVersion( repo, version, function( error, data ) {
-				if ( error ) {
-					// TODO: log failure for retry
-					return progress();
-				}
-
-				if ( data.errors.length ) {
-					// TODO: report errors to user
-					return progress();
-				}
-
-				_addPluginVersion( version, data.package, function( error ) {
-					if ( error ) {
-						return progress();
-					}
-
-					var name = data.package.name;
-					if ( !plugins[ name ] ) {
-						plugins[ name ] = [];
-					}
-					plugins[ name ].push( semver.clean( version ) );
-					progress();
-				});
-			});
-		});
-	});
-
-	function _addPluginVersion( version, package, fn ) {
-		// find out who owns this plugin
-		// if there is no owner, then set the user as the owner
-		pluginsDb.getOrSetOwner( package.name, repo.userName, function( error, owner ) {
+		// validate each version
+		function( error, versions ) {
 			if ( error ) {
-				// TODO: log failure for retry
 				return fn( error );
 			}
 
-			// the plugin is owned by someone else
-			if ( owner !== repo.userName ) {
-				// TODO: report error to user
-				return fn( new Error( "Plugin owned by someone else." ) );
+			if ( !versions.length ) {
+				return fn( null );
 			}
 
-			pluginsDb.addVersion( repo, package, function( error ) {
+			var group = this.group();
+			versions.forEach(function( version ) {
+				validateVersion( version, group() );
+			});
+		},
+
+		// filter to only valid versions
+		function( error, versions ) {
+			return versions.filter(function( version ) {
+				return !!(version && version.package);
+			});
+		},
+
+		// process the valid versions
+		function( error, versions ) {
+			if ( !versions.length ) {
+				return fn();
+			}
+
+			var group = this.group();
+			versions.forEach(function( version ) {
+				processVersion( version.version, version.package, group() );
+			});
+		},
+
+		// filter to successfully added versions
+		function( error, versions ) {
+			return versions.filter(function( version ) {
+				return !!version;
+			});
+		},
+
+		// determine which plugins and versions were added
+		function( error, versions ) {
+			var plugins = {};
+			versions.forEach(function( package ) {
+				var name = package.name;
+				if ( !plugins[ name ] ) {
+					plugins[ name ] = [];
+				}
+				plugins[ name ].push( semver.clean( package.version ) );
+			});
+			return plugins;
+		},
+
+		// process each plugin
+		function( error, plugins ) {
+			var group = this.group(),
+				names = Object.keys( plugins );
+			names.forEach(function( name ) {
+				postProcessPlugin( name, plugins[ name ], group() );
+			});
+		},
+
+		function( error ) {
+			wordpress.end();
+
+			if ( error ) {
+				return fn( error );
+			}
+
+			fn( null );
+		}
+	);
+
+	function validateVersion( version, fn ) {
+		Step(
+			// get the package.json
+			function() {
+				repo.getPackageJson( version, this );
+			},
+
+			// check if we found a package.json
+			function( error, package ) {
+				if ( error ) {
+					if ( error.userError ) {
+						// TODO: report error to user
+					} else {
+						// TODO: log error for retry
+					}
+					return fn( error );
+				}
+
+				if ( !package ) {
+					return fn( null );
+				}
+
+				return package;
+			},
+
+			// validate package.json
+			function( error, package ) {
+				var errors = validatePackageJson( package, version );
+
+				if ( errors.length ) {
+					// TODO: report errors to user
+					return fn( null );
+				}
+
+				fn( null, {
+					version: version,
+					package: package
+				});
+			}
+		);
+	}
+
+	function processVersion( version, package, fn ) {
+		Step(
+			// find out who owns this plugin
+			// if there is no owner, then set the user as the owner
+			function() {
+				pluginsDb.getOrSetOwner( package.name, repo.userName, this );
+			},
+
+			// verify the user is the owner
+			function( error, owner ) {
+				if ( error ) {
+					// TODO: log failure for retry
+					return fn( error );
+				}
+
+				// the plugin is owned by someone else
+				if ( owner !== repo.userName ) {
+					// TODO: report error to user
+					return fn( new UserError( "Plugin " + package.name + " is owned by " + owner + "." ) );
+				}
+
+				return owner;
+			},
+
+			// track the new version
+			function( error, owner ) {
+				pluginsDb.addVersion( repo, package, this );
+			},
+
+			// generate the version page for WordPress
+			function( error ) {
 				if ( error ) {
 					// TODO: log failure for retry
 					return fn( error );
@@ -219,23 +251,86 @@ function processPlugin( data, fn ) {
 				pluginData.url = repo.siteUrl;
 				pluginData.forks = repo.forks;
 				pluginData.watchers = repo.watchers;
-				generatePage( pluginData, function( error, page ) {
-					if ( error ) {
-						// TODO: log failure for retry
-						return fn( error );
-					}
+				generatePage( pluginData, this );
+			},
 
-					wordpress.addVersionedPlugin( version, package, page, function( error ) {
-						if ( error ) {
-							// TODO: log failure for retry
-							return fn( error );
-						}
-						console.log( "Added " + package.name + " " + package.version );
-						fn();
-					});
+			// create the version page in WordPress
+			function( error, page ) {
+				if ( error ) {
+					// TODO: log failure for retry
+					return fn( error );
+				}
+
+				wordpress.addVersionedPlugin( version, package, page, this );
+			},
+
+			// finished processing version
+			function( error ) {
+				if ( error ) {
+					// TODO: log failure for retry
+					return fn( error );
+				}
+
+				console.log( "Added " + package.name + " " + package.version );
+				fn( null, package );
+			}
+		);
+	}
+
+	function postProcessPlugin( plugin, newVersions, fn ) {
+		function isStable( version ) {
+			return /^\d+\.\d+\.\d+$/.test( version );
+		}
+
+		Step(
+			// get existing versions
+			function() {
+				wordpress.getVersions( plugin, this );
+			},
+
+			// merge existing versions with new versions
+			function( error, versions ) {
+				if ( error ) {
+					// TODO: log failure for retry
+					return fn( error );
+				}
+
+				return versions.concat( newVersions );
+			},
+
+			// update WordPress to list new versions
+			function( error, versions ) {
+				var latest, filteredVersions;
+
+				versions = versions.sort( semver.compare ).reverse();
+				filteredVersions = versions.filter(function( version ) {
+					if ( latest ) {
+						return isStable( version );
+					}
+					if ( isStable( version ) ) {
+						latest = version;
+					}
+					return true;
 				});
-			});
-		});
+
+				// no stable relases yet, show latest pre-release
+				if ( !latest ) {
+					latest = filteredVersions[ 0 ];
+				}
+
+				// TODO: set page parent
+				wordpress.setVersions( plugin, filteredVersions, latest, this );
+			},
+
+			function( error ) {
+				if ( error ) {
+					// TODO: log failure for retry
+					return fn( error );
+				}
+
+				fn( null );
+			}
+		);
 	}
 }
 
@@ -243,7 +338,6 @@ function processPlugin( data, fn ) {
 
 
 
-// TODO: track watchers and forks
 processPlugin({
 	url: "http://github.com/scottgonzalez/temp-jquery-foo",
 	watchers: 25,

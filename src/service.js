@@ -2,6 +2,7 @@ var fs = require( "fs" ),
 	exec = require( "child_process" ).exec,
 	semver = require( "semver" ),
 	mkdirp = require( "mkdirp" ),
+	UserError = require( "./user-error" ),
 	config = require( "./config" );
 
 var reGithubUrl = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)(\/.*)?$/;
@@ -57,17 +58,19 @@ extend( GithubRepo.prototype, {
 		exec( "git show " + version + ":package.json", { cwd: this.path }, function( error, stdout, stderr ) {
 			// this will also result in an error being passed, so we check stderr first
 			if ( stderr && stderr.substring( 0, 41 ) === "fatal: Path 'package.json' does not exist" ) {
-				return fn( new Error( "No package.json for " + version + "." ) );
+				return fn( null, null );
 			}
 
 			if ( error ) {
 				return fn( error );
 			}
 
+			// TODO: handle stderr
+
 			try {
 				var package = JSON.parse( stdout );
 			} catch( error ) {
-				return fn( new Error( "Could not parse package.json for " + version + "." ) );
+				return fn( new UserError( "Could not parse package.json for " + version + "." ) );
 			}
 
 			return fn( null, package );
