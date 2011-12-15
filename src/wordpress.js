@@ -261,5 +261,20 @@ var wordpress = module.exports = {
 			db.end();
 			db = null;
 		}
-	}
+	},
+
+	_reset: auto(function( fn ) {
+		Step(
+			function() {
+				db.query( "TRUNCATE TABLE `" + postsTable + "`", this.parallel() );
+				db.query( "TRUNCATE TABLE `" + postmetaTable + "`", this.parallel() );
+				wordpress.flush( this.parallel() );
+			},
+
+			function( error ) {
+				wordpress.end();
+				fn( error );
+			}
+		);
+	})
 };

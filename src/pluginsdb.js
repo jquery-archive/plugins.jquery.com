@@ -88,5 +88,45 @@ var pluginsDb = module.exports = {
 
 	getAllActions: auto(function( fn ) {
 		db.all( "SELECT * FROM actions", fn );
-	})
+	}),
+
+	_reset: function( fn ) {
+		var fs = require( "fs" ),
+			Step = require( "step" );
+
+		Step(
+			function() {
+				fs.unlink( config.pluginsDb, this );
+			},
+
+			function( error ) {
+				if ( !error || error.code === "ENOENT" ) {
+					return connect( this );
+				}
+
+				fn( error );
+			},
+
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				db.run( "CREATE TABLE owners (" +
+					"plugin TEXT PRIMARY KEY, " +
+					"owner TEXT " +
+				")", this.parallel() );
+
+				db.run( "CREATE TABLE actions (" +
+					"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+					"action TEXT, " +
+					"data TEXT " +
+				")", this.parallel() );
+			},
+
+			function( error ) {
+				fn( error );
+			}
+		);
+	}
 };
