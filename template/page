@@ -14,6 +14,10 @@
 			{{allContributors}}
 		</div>
 	{{/if}}
+	<div class="block">
+		<h2>All versions</h2>
+		[jq_plugin_versions]
+	</div>
 </div>
 <div class="col col3-1">
 	<div class="block">

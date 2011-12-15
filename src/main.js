@@ -156,13 +156,22 @@ function processPlugin( data, fn ) {
 			});
 		},
 
+		// flush redirect rules
 		function( error ) {
-			wordpress.end();
-
 			if ( error ) {
 				return fn( error );
 			}
 
+			wordpress.flush( this );
+		},
+
+		// close connection to WordPress
+		function( error ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			wordpress.end();
 			fn( null );
 		}
 	);
@@ -322,6 +331,16 @@ function processPlugin( data, fn ) {
 				wordpress.setVersions( plugin, filteredVersions, latest, this );
 			},
 
+			// finalize/publish versioned pages
+			function( error ) {
+				if ( error ) {
+					// TODO: log failure for retry
+					return fn( error );
+				}
+
+				wordpress.finalizePendingVersions( plugin, this );
+			},
+
 			function( error ) {
 				if ( error ) {
 					// TODO: log failure for retry
@@ -345,6 +364,6 @@ processPlugin({
 }, function( error, data ) {
 	// TODO: log error to file
 	if ( error ) {
-		console.log( error );
+		console.log( error, error.stack );
 	}
 });

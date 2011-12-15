@@ -1,11 +1,16 @@
 var mysql = require( "mysql" ),
+	Step = require( "step" ),
 	config = require( "./config" );
 
 var db,
-	postsTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "posts";
-	postmetaTable = "wp_" + (config.siteId ? config.siteId + "_" : "") + "postmeta";
+	postIds = {},
+	postsTable = table( "posts" );
+	postmetaTable = table( "postmeta" ),
+	optionsTable = table( "options" );
 
-
+function table( name ) {
+	return "wp_" + (config.siteId ? config.siteId + "_" : "") + name;
+}
 
 function connect() {
 	db = new mysql.createClient({
@@ -18,6 +23,12 @@ function connect() {
 }
 
 function getPostId( name, fn ) {
+	if ( name in postIds ) {
+		return process.nextTick(function() {
+			fn( null, postIds[ name ] );
+		});
+	}
+
 	db.query( "SELECT `ID` FROM `" + postsTable + "` WHERE `post_name` = ?",
 		[ name ], function( error, rows ) {
 			if ( error ) {
@@ -28,28 +39,34 @@ function getPostId( name, fn ) {
 				return fn( null, null );
 			}
 
+			postIds[ name ] = rows[ 0 ].ID;
 			fn( null, rows[ 0 ].ID );
 		});
 }
 
 function createOrUpdatePost( name, title, content, fn ) {
 	getPostId( name, function( error, id ) {
-			if ( error ) {
-				return fn( error );
-			}
+		if ( error ) {
+			return fn( error );
+		}
 
-			if ( !id ) {
-				// TODO: set post_type = "page"
-				db.query( "INSERT INTO `" + postsTable + "` " +
-					"SET `post_name` = ?, `post_title` = ?, `post_content` = ?",
-					[ name, title, content ], fn );
-			} else {
-				db.query( "UPDATE `" + postsTable + "` " +
-					"SET `post_content` = ? " +
-					"WHERE `ID` = ?",
-					[ content, id ], fn );
-			}
-		});
+		if ( !id ) {
+			createPost( name, title, content, fn );
+		} else {
+			db.query( "UPDATE `" + postsTable + "` " +
+				"SET `post_content` = ? " +
+				"WHERE `ID` = ?",
+				[ content, id ], fn );
+		}
+	});
+}
+
+function createPost( name, title, content, fn ) {
+	// TODO: set all datetime fields
+	db.query( "INSERT INTO `" + postsTable + "` " +
+		"SET `post_name` = ?, `post_title` = ?, `post_content` = ?, " +
+		"`post_type` = 'page'",
+		[ name, title, content ], fn );
 }
 
 function setMeta( plugin, key, value, fn ) {
@@ -131,15 +148,71 @@ function auto( fn ) {
 
 
 
-module.exports = {
+var wordpress = module.exports = {
 	addVersionedPlugin: auto(function( version, package, content, fn ) {
-		var postName = package.name + "-" + package.version;
-		createOrUpdatePost( postName, package.title, content, function( error ) {
+		var postName = package.name + "/" + package.version;
+		createPost( postName, package.title, content, function( error ) {
 			if ( error ) {
 				return fn( error );
 			}
 
 			setMeta( postName, "package_json", JSON.stringify( package ), fn );
+		});
+	}),
+
+	getPendingVersions: auto(function( plugin, fn ) {
+		db.query( "SELECT `ID`, `post_name` FROM `" + postsTable + "` WHERE `post_name` LIKE ?",
+			[ plugin + "/%" ], function( error, rows ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null, rows.map(function( row ) {
+					return row.post_name.slice( plugin.length + 1 );
+				}));
+			});
+	}),
+
+	finalizePendingVersions: auto(function( plugin, fn ) {
+		Step(
+			function() {
+				wordpress.getPendingVersions( plugin, this );
+			},
+
+			function( error, versions ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				var group = this.group();
+				versions.forEach(function( version ) {
+					wordpress.finalizePendingVersion( plugin, version, group() );
+				});
+			},
+
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null );
+			}
+		);
+	}),
+
+	finalizePendingVersion: auto(function( plugin, version, fn ) {
+		getPostId( plugin, function( error, id ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			if ( !id ) {
+				return fn( new Error( "No page for " + plugin ) );
+			}
+
+			db.query( "UPDATE `" + postsTable + "` " +
+				"SET `post_name` = ?, `post_parent` = ? WHERE `post_name` = ?",
+				[ version, id, plugin + "/" + version ], fn );
 		});
 	}),
 
@@ -158,7 +231,7 @@ module.exports = {
 	}),
 
 	setVersions: auto(function( plugin, versions, latest, fn ) {
-		var postName = plugin + "-" + latest;
+		var postName = plugin + "/" + latest;
 		db.query( "SELECT `post_title`, `post_content` FROM `" + postsTable + "` WHERE `post_name` = ?",
 			[ postName ], function( error, rows ) {
 				if ( error ) {
@@ -177,6 +250,10 @@ module.exports = {
 					setMeta( plugin, "versions", JSON.stringify( versions ), fn );
 				});
 		});
+	}),
+
+	flush: auto(function( fn ) {
+		db.query( "DELETE FROM `" + optionsTable + "` WHERE `option_name` = 'rewrite_rules'", fn );
 	}),
 
 	end: function() {
