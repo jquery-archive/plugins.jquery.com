@@ -12,6 +12,7 @@ function table( name ) {
 	return "wp_" + (config.siteId ? config.siteId + "_" : "") + name;
 }
 
+// TODO: handle connection error
 function connect() {
 	db = new mysql.createClient({
 		host: config.dbHost,
@@ -250,6 +251,26 @@ var wordpress = module.exports = {
 					setMeta( plugin, "versions", JSON.stringify( versions ), fn );
 				});
 		});
+	}),
+
+	updateMeta: auto(function( plugin, meta, fn ) {
+		Step(
+			function() {
+				var key,
+					group = this.group();
+				for ( key in meta ) {
+					setMeta( plugin, key, meta[ key ], group() );
+				}
+			},
+
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null );
+			}
+		);
 	}),
 
 	flush: auto(function( fn ) {

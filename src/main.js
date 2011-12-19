@@ -87,6 +87,30 @@ function processPlugin( data, fn ) {
 	}
 
 	Step(
+		function() {
+			processVersions( repo, this );
+		},
+
+		function( error ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			processMeta( repo, this );
+		},
+
+		function( error ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			fn( null );
+		}
+	);
+}
+
+function processVersions( repo, fn ) {
+	Step(
 		// get all new versions of the plugin
 		function() {
 			repo.getNewVersions( this );
@@ -258,8 +282,6 @@ function processPlugin( data, fn ) {
 				var pluginData = Object.create( package );
 				pluginData._downloadUrl = repo.downloadUrl( version );
 				pluginData.url = repo.siteUrl;
-				pluginData.forks = repo.forks;
-				pluginData.watchers = repo.watchers;
 				generatePage( pluginData, this );
 			},
 
@@ -353,6 +375,55 @@ function processPlugin( data, fn ) {
 	}
 }
 
+function processMeta( repo, fn ) {
+	var plugin;
+	Step(
+		function() {
+			repo.getPackageJson( null, this );
+		},
+
+		function( error, package ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			plugin = package.name;
+			pluginsDb.getOwner( plugin, this );
+		},
+
+		function( error, owner ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			// the plugin is not being tracked yet
+			if ( !owner ) {
+				return fn( null );
+			}
+
+			// the plugin is owned by someone else
+			if ( owner !== repo.userName ) {
+				// TODO: report error to user
+				return fn( new UserError( "Plugin " + plugin + " is owned by " + owner + "." ) );
+			}
+
+			wordpress.updateMeta( plugin, {
+				watchers: repo.watchers,
+				forks: repo.forks
+			}, this );
+		},
+
+		function( error ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			console.log( "Updated meta for " + plugin );
+			wordpress.end();
+			fn( null );
+		}
+	);
+}
 
 
 
