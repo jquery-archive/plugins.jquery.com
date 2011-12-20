@@ -55,12 +55,24 @@ function createOrUpdatePost( name, title, content, fn ) {
 		}
 
 		if ( !id ) {
-			createPost( name, title, content, fn );
+			createPost( name, title, content, function( error, info ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null, info.insertId );
+			});
 		} else {
 			db.query( "UPDATE `" + postsTable + "` " +
 				"SET `post_content` = ? " +
 				"WHERE `ID` = ?",
-				[ content, id ], fn );
+				[ content, id ], function( error ) {
+					if ( error ) {
+						return fn( error );
+					}
+
+					fn( null, id );
+				});
 		}
 	});
 }
@@ -250,8 +262,14 @@ var wordpress = module.exports = {
 
 	setVersions: auto(function( plugin, versions, latest, fn ) {
 		var postName = plugin + "/" + latest;
-		db.query( "SELECT `post_title`, `post_content` FROM `" + postsTable + "` WHERE `post_name` = ?",
-			[ postName ], function( error, rows ) {
+		Step(
+			function() {
+				db.query( "SELECT `ID`, `post_title`, `post_content` " +
+					"FROM `" + postsTable + "` WHERE `post_name` = ?",
+					[ postName ], this );
+			},
+
+			function( error, rows ) {
 				if ( error ) {
 					return fn( error );
 				}
@@ -260,14 +278,30 @@ var wordpress = module.exports = {
 					return fn( new Error( "No post for " + postName ) );
 				}
 
-				createOrUpdatePost( plugin, rows[ 0 ].post_title, rows[ 0 ].post_content, function( error ) {
-					if ( error ) {
-						return fn( error );
-					}
+				createOrUpdatePost( plugin, rows[ 0 ].post_title, rows[ 0 ].post_content, this.parallel() );
+				this.parallel()( null, rows[ 0 ].ID );
+			},
 
-					setMeta( plugin, "versions", JSON.stringify( versions ), fn );
-				});
-		});
+			function( error, mainId, versionedId ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				setMeta( plugin, "versions", JSON.stringify( versions ), this.parallel() );
+				db.query( "INSERT INTO `" + termRelationshipsTable + "` (`object_id`, `term_taxonomy_id`) " +
+					"(SELECT ?, `term_taxonomy_id` FROM `" + termRelationshipsTable + "` " +
+					"WHERE `object_id` = ?)",
+					[ mainId, versionedId ], this.parallel() );
+			},
+
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null );
+			}
+		);
 	}),
 
 	updateMeta: auto(function( plugin, meta, fn ) {
