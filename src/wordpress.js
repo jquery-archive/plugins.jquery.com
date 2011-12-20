@@ -55,25 +55,18 @@ function createOrUpdatePost( name, title, content, fn ) {
 		}
 
 		if ( !id ) {
-			createPost( name, title, content, function( error, info ) {
+			return createPost( name, title, content, fn );
+		}
+
+		db.query( "UPDATE `" + postsTable + "` " +
+			"SET `post_title` = ?, `post_content` = ? WHERE `ID` = ?",
+			[ title, content, id ], function( error ) {
 				if ( error ) {
 					return fn( error );
 				}
 
-				fn( null, info.insertId );
+				fn( null, id );
 			});
-		} else {
-			db.query( "UPDATE `" + postsTable + "` " +
-				"SET `post_content` = ? " +
-				"WHERE `ID` = ?",
-				[ content, id ], function( error ) {
-					if ( error ) {
-						return fn( error );
-					}
-
-					fn( null, id );
-				});
-		}
 	});
 }
 
@@ -82,49 +75,57 @@ function createPost( name, title, content, fn ) {
 	db.query( "INSERT INTO `" + postsTable + "` " +
 		"SET `post_name` = ?, `post_title` = ?, `post_content` = ?, " +
 		"`post_type` = 'page'",
-		[ name, title, content ], fn );
+		[ name, title, content ], function( error, info ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			postIds[ name ] = info.insertId;
+			fn( null, info.insertId );
+		});
 }
 
 function setMeta( plugin, key, value, fn ) {
-	getPostId( plugin, function( error, id ) {
-		if ( error ) {
-			return fn( error );
+	Step(
+		function() {
+			getPostId( plugin, this );
+		},
+
+		function( error, id ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			if ( !id ) {
+				return fn( new Error( "Cannot set " + key + " for " + plugin + "." ) );
+			}
+
+			this.parallel()( null, id );
+			db.query( "SELECT `meta_id` FROM `" + postmetaTable + "` " +
+				"WHERE `post_id` = ? AND `meta_key` = ?",
+				[ id, key ], this.parallel() );
+		},
+
+		function( error, id, rows ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			if ( !rows.length ) {
+				db.query( "INSERT INTO `" + postmetaTable + "` " +
+					"SET `post_id` = ?, `meta_key` = ?, `meta_value` = ?",
+					[ id, key, value ], this );
+			} else {
+				db.query( "UPDATE `" + postmetaTable + "` " +
+					"SET `meta_value` = ? WHERE `meta_id` = ?",
+					[ value, rows[ 0 ].meta_id ], this );
+			}
+		},
+
+		function( error ) {
+			fn( error );
 		}
-
-		if ( !id ) {
-			return fn( new Error( "Cannot set " + key + " for " + plugin + "." ) );
-		}
-
-		db.query( "SELECT `meta_id` FROM `" + postmetaTable + "` " +
-			"WHERE `post_id` = ? AND `meta_key` = ?",
-			[ id, key ], function( error, rows ) {
-				if ( error ) {
-					return fn( error );
-				}
-
-				if ( !rows.length ) {
-					db.query( "INSERT INTO `" + postmetaTable + "` " +
-						"SET `post_id` = ?, `meta_key` = ?, `meta_value` = ?",
-						[ id, key, value ], function( error ) {
-							if ( error ) {
-								return fn( error );
-							}
-
-							fn( null );
-						});
-				} else {
-					db.query( "UPDATE `" + postmetaTable + "` " +
-						"SET `meta_value` = ? WHERE `meta_id` = ?",
-						[ value, rows[ 0 ].meta_id ], function( error ) {
-							if ( error ) {
-								return fn( error );
-							}
-
-							fn( null );
-						});
-				}
-			});
-	});
+	);
 }
 
 function getMeta( plugin, key, fn ) {
@@ -288,6 +289,7 @@ var wordpress = module.exports = {
 				}
 
 				setMeta( plugin, "versions", JSON.stringify( versions ), this.parallel() );
+				// TODO: delete first
 				db.query( "INSERT INTO `" + termRelationshipsTable + "` (`object_id`, `term_taxonomy_id`) " +
 					"(SELECT ?, `term_taxonomy_id` FROM `" + termRelationshipsTable + "` " +
 					"WHERE `object_id` = ?)",

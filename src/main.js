@@ -11,54 +11,6 @@ var semver = require( "semver" ),
 
 
 
-function validatePackageJson( package, version ) {
-	var errors = [];
-
-	if ( !package.name ) {
-		errors.push( "Missing required field: name." );
-	} else if ( package.name.charAt( 0 ) === "_" || package.name.charAt( 0 ) === "." ) {
-		errors.push( "Name cannot start with an underscore or dot." );
-	}
-
-	if ( !package.version ) {
-		errors.push( "Missing required field: version." );
-	} else if ( package.version !== semver.clean( package.version ) ) {
-		errors.push( "Package.json version (" + package.version + ") is invalid." );
-	} else if ( package.version !== semver.clean( version ) ) {
-		errors.push( "Package.json version (" + package.version + ") does not match tag (" + version + ")." );
-	}
-
-	if ( !package.title ) {
-		errors.push( "Missing required field: title." );
-	}
-
-	if ( !package.author ) {
-		errors.push( "Missing required field: author." );
-	} else if ( !package.author.name ) {
-		errors.push( "Missing required field: author.name." );
-	}
-
-	if ( !package.licenses ) {
-		errors.push( "Missing required field: licenses." );
-	} else if ( !package.licenses.length ) {
-		errors.push( "There must be at least one license." );
-	} else if ( package.licenses.filter(function( license ) { return !license.url; }).length ) {
-		errors.push( "Missing required field: license.url." );
-	}
-
-	if ( !package.dependencies ) {
-		errors.push( "Missing required field: dependencies." );
-	} else if ( !package.dependencies.jquery ) {
-		errors.push( "Missing required dependency: jquery." );
-	}
-
-	return errors;
-}
-
-
-
-
-
 function generatePage( package, fn ) {
 	template.get( "page", function( error, template ) {
 		if ( error ) {
@@ -100,11 +52,7 @@ function processPlugin( data, fn ) {
 		},
 
 		function( error ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			fn( null );
+			fn( error );
 		}
 	);
 }
@@ -116,33 +64,10 @@ function processVersions( repo, fn ) {
 			repo.getNewVersions( this );
 		},
 
-		// validate each version
+		// process the versions
 		function( error, versions ) {
-			if ( error ) {
-				return fn( error );
-			}
-
 			if ( !versions.length ) {
 				return fn( null );
-			}
-
-			var group = this.group();
-			versions.forEach(function( version ) {
-				validateVersion( version, group() );
-			});
-		},
-
-		// filter to only valid versions
-		function( error, versions ) {
-			return versions.filter(function( version ) {
-				return !!(version && version.package);
-			});
-		},
-
-		// process the valid versions
-		function( error, versions ) {
-			if ( !versions.length ) {
-				return fn();
 			}
 
 			var group = this.group();
@@ -189,58 +114,14 @@ function processVersions( repo, fn ) {
 			wordpress.flush( this );
 		},
 
-		// close connection to WordPress
 		function( error ) {
 			if ( error ) {
 				return fn( error );
 			}
 
-			wordpress.end();
 			fn( null );
 		}
 	);
-
-	function validateVersion( version, fn ) {
-		Step(
-			// get the package.json
-			function() {
-				repo.getPackageJson( version, this );
-			},
-
-			// check if we found a package.json
-			function( error, package ) {
-				if ( error ) {
-					if ( error.userError ) {
-						// TODO: report error to user
-					} else {
-						// TODO: log error for retry
-					}
-					return fn( error );
-				}
-
-				if ( !package ) {
-					return fn( null );
-				}
-
-				return package;
-			},
-
-			// validate package.json
-			function( error, package ) {
-				var errors = validatePackageJson( package, version );
-
-				if ( errors.length ) {
-					// TODO: report errors to user
-					return fn( null );
-				}
-
-				fn( null, {
-					version: version,
-					package: package
-				});
-			}
-		);
-	}
 
 	function processVersion( version, package, fn ) {
 		Step(
@@ -419,7 +300,6 @@ function processMeta( repo, fn ) {
 			}
 
 			console.log( "Updated meta for " + plugin );
-			wordpress.end();
 			fn( null );
 		}
 	);
@@ -433,6 +313,7 @@ processPlugin({
 	watchers: 25,
 	forks: 3
 }, function( error, data ) {
+	wordpress.end()
 	// TODO: log error to file
 	if ( error ) {
 		console.log( error, error.stack );
