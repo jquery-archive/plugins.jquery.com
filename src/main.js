@@ -161,7 +161,7 @@ function processVersions( repo, fn ) {
 
 				// add additional metadata and generate the plugin page
 				var pluginData = Object.create( version.package );
-				pluginData._downloadUrl = repo.downloadUrl( version );
+				pluginData._downloadUrl = repo.downloadUrl( version.version );
 				pluginData.url = repo.siteUrl;
 				generatePage( pluginData, this );
 			},
