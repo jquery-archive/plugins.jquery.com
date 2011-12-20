@@ -48,19 +48,20 @@ function getPostId( name, fn ) {
 		});
 }
 
-function createOrUpdatePost( name, title, content, fn ) {
+function createOrUpdatePost( name, title, content, date, fn ) {
 	getPostId( name, function( error, id ) {
 		if ( error ) {
 			return fn( error );
 		}
 
 		if ( !id ) {
-			return createPost( name, title, content, fn );
+			return createPost( name, title, content, date, fn );
 		}
 
 		db.query( "UPDATE `" + postsTable + "` " +
-			"SET `post_title` = ?, `post_content` = ? WHERE `ID` = ?",
-			[ title, content, id ], function( error ) {
+			"SET `post_title` = ?, `post_content` = ?, " +
+			"`post_modified` = ?, `post_modified_gmt` = ? WHERE `ID` = ?",
+			[ title, content, id, date, date ], function( error ) {
 				if ( error ) {
 					return fn( error );
 				}
@@ -70,12 +71,16 @@ function createOrUpdatePost( name, title, content, fn ) {
 	});
 }
 
-function createPost( name, title, content, fn ) {
+function createPost( name, title, content, date, fn ) {
 	// TODO: set all datetime fields
+	var localDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +
+			date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds(),
+		gmtDate = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + date.getUTCDate() + " " +
+			date.getUTCHours() + ":" + date.getUTCMinutes() + ":" + date.getUTCSeconds();
 	db.query( "INSERT INTO `" + postsTable + "` " +
-		"SET `post_name` = ?, `post_title` = ?, `post_content` = ?, " +
-		"`post_type` = 'page'",
-		[ name, title, content ], function( error, info ) {
+		"SET `post_type` = 'page', `post_name` = ?, `post_title` = ?, `post_content` = ?, " +
+		"`post_date` = ?, `post_date_gmt` = ?, `post_modified` = ?, `post_modified_gmt` = ?",
+		[ name, title, content, localDate, gmtDate, localDate, gmtDate ], function( error, info ) {
 			if ( error ) {
 				return fn( error );
 			}
@@ -166,11 +171,11 @@ function auto( fn ) {
 
 
 var wordpress = module.exports = {
-	addVersionedPlugin: auto(function( version, package, content, fn ) {
+	addVersionedPlugin: auto(function( package, content, date, fn ) {
 		var postName = package.name + "/" + package.version;
 		Step(
 			function() {
-				createPost( postName, package.title, content, this );
+				createPost( postName, package.title, content, date, this );
 			},
 
 			function( error ) {
@@ -265,7 +270,7 @@ var wordpress = module.exports = {
 		var postName = plugin + "/" + latest;
 		Step(
 			function() {
-				db.query( "SELECT `ID`, `post_title`, `post_content` " +
+				db.query( "SELECT `ID`, `post_title`, `post_content`, `post_date` " +
 					"FROM `" + postsTable + "` WHERE `post_name` = ?",
 					[ postName ], this );
 			},
@@ -279,7 +284,8 @@ var wordpress = module.exports = {
 					return fn( new Error( "No post for " + postName ) );
 				}
 
-				createOrUpdatePost( plugin, rows[ 0 ].post_title, rows[ 0 ].post_content, this.parallel() );
+				createOrUpdatePost( plugin, rows[ 0 ].post_title, rows[ 0 ].post_content,
+					new Date( rows[ 0 ].post_date ), this.parallel() );
 				this.parallel()( null, rows[ 0 ].ID );
 			},
 

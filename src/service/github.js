@@ -73,6 +73,16 @@ extend( GithubRepo.prototype, {
 
 			fn( null, stdout );
 		});
+	},
+
+	getReleaseDate: function( version, fn ) {
+		exec( "git log --pretty='%cD' -1 " + version, { cwd: this.path }, function( error, stdout, stderr ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			fn( null, new Date( stdout ) );
+		});
 	}
 });
 

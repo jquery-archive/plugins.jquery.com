@@ -110,6 +110,22 @@ extend( Repo.prototype, {
 				});
 			},
 
+			// get dates for each version
+			function( error, versions ) {
+				var group = this.group();
+				versions.forEach(function( version ) {
+					var cb = group();
+					repo.getReleaseDate( version.version, function( error, date ) {
+						if ( error ) {
+							return cb( error );
+						}
+
+						extend( version, { date: date } );
+						cb( null, version );
+					});
+				});
+			},
+
 			fn
 		);
 	},

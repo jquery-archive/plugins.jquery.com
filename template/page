@@ -45,7 +45,7 @@
 		</div>
 		<div class="col col4-2 right">
 			<h2>Released</h2>
-			<b>?</b>
+			<b>[jq_plugin_date]</b>
 		</div>
 	</div>
 	<div class="block">

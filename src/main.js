@@ -72,7 +72,7 @@ function processVersions( repo, fn ) {
 
 			var group = this.group();
 			versions.forEach(function( version ) {
-				processVersion( version.version, version.package, group() );
+				processVersion( version, group() );
 			});
 		},
 
@@ -123,12 +123,12 @@ function processVersions( repo, fn ) {
 		}
 	);
 
-	function processVersion( version, package, fn ) {
+	function processVersion( version, fn ) {
 		Step(
 			// find out who owns this plugin
 			// if there is no owner, then set the user as the owner
 			function() {
-				pluginsDb.getOrSetOwner( package.name, repo.userName, this );
+				pluginsDb.getOrSetOwner( version.package.name, repo.userName, this );
 			},
 
 			// verify the user is the owner
@@ -141,7 +141,7 @@ function processVersions( repo, fn ) {
 				// the plugin is owned by someone else
 				if ( owner !== repo.userName ) {
 					// TODO: report error to user
-					return fn( new UserError( "Plugin " + package.name + " is owned by " + owner + "." ) );
+					return fn( new UserError( "Plugin " + version.package.name + " is owned by " + owner + "." ) );
 				}
 
 				return owner;
@@ -149,7 +149,7 @@ function processVersions( repo, fn ) {
 
 			// track the new version
 			function( error, owner ) {
-				pluginsDb.addVersion( repo, package, this );
+				pluginsDb.addVersion( repo, version.package, this );
 			},
 
 			// generate the version page for WordPress
@@ -160,7 +160,7 @@ function processVersions( repo, fn ) {
 				}
 
 				// add additional metadata and generate the plugin page
-				var pluginData = Object.create( package );
+				var pluginData = Object.create( version.package );
 				pluginData._downloadUrl = repo.downloadUrl( version );
 				pluginData.url = repo.siteUrl;
 				generatePage( pluginData, this );
@@ -173,7 +173,7 @@ function processVersions( repo, fn ) {
 					return fn( error );
 				}
 
-				wordpress.addVersionedPlugin( version, package, page, this );
+				wordpress.addVersionedPlugin( version.package, page, version.date, this );
 			},
 
 			// finished processing version
@@ -183,8 +183,8 @@ function processVersions( repo, fn ) {
 					return fn( error );
 				}
 
-				console.log( "Added " + package.name + " " + package.version );
-				fn( null, package );
+				console.log( "Added " + version.package.name + " " + version.package.version );
+				fn( null, version.package );
 			}
 		);
 	}
