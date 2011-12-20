@@ -4,9 +4,12 @@ var mysql = require( "mysql" ),
 
 var db,
 	postIds = {},
-	postsTable = table( "posts" );
+	optionsTable = table( "options" ),
 	postmetaTable = table( "postmeta" ),
-	optionsTable = table( "options" );
+	postsTable = table( "posts" ),
+	termsTable = table( "terms" ),
+	termRelationshipsTable = table( "term_relationships" ),
+	termTaxonomyTable = table( "term_taxonomy" );
 
 function table( name ) {
 	return "wp_" + (config.siteId ? config.siteId + "_" : "") + name;
@@ -152,13 +155,27 @@ function auto( fn ) {
 var wordpress = module.exports = {
 	addVersionedPlugin: auto(function( version, package, content, fn ) {
 		var postName = package.name + "/" + package.version;
-		createPost( postName, package.title, content, function( error ) {
-			if ( error ) {
-				return fn( error );
-			}
+		Step(
+			function() {
+				createPost( postName, package.title, content, this );
+			},
 
-			setMeta( postName, "package_json", JSON.stringify( package ), fn );
-		});
+			function( error ) {
+				var parallel = this.parallel;
+				setMeta( postName, "package_json", JSON.stringify( package ), parallel() );
+				(package.keywords || []).forEach(function( keyword ) {
+					wordpress.setTerm( postName, keyword, parallel() );
+				});
+			},
+
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null );
+			}
+		);
 	}),
 
 	getPendingVersions: auto(function( plugin, fn ) {
@@ -273,6 +290,62 @@ var wordpress = module.exports = {
 		);
 	}),
 
+	createTerm: auto(function( term, fn ) {
+		Step(
+			function() {
+				db.query( "INSERT INTO `" + termsTable + "` SET `name` = ?, `slug` = ? " +
+					"ON DUPLICATE KEY UPDATE `term_id` = LAST_INSERT_ID(`term_id`)",
+					[ term, term ], this );
+			},
+
+			function( error, info ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				db.query( "INSERT INTO `" + termTaxonomyTable + "` " +
+					"SET `term_id` = ?, `taxonomy` = 'post_tag' " +
+					"ON DUPLICATE KEY UPDATE `term_taxonomy_id` = LAST_INSERT_ID(`term_taxonomy_id`)",
+					[ info.insertId ], this );
+			},
+
+			function( error, info ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null, info.insertId );
+			}
+		);
+	}),
+
+	setTerm: auto(function( post, term, fn ) {
+		Step(
+			function() {
+				getPostId( post, this.parallel() );
+				wordpress.createTerm( term, this.parallel() );
+			},
+
+			function( error, postId, termId ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				db.query( "INSERT INTO `" + termRelationshipsTable + "` " +
+					"SET `object_id` = ?, `term_taxonomy_id` = ?",
+					[ postId, termId ], this );
+			},
+
+			function( error, termId ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null );
+			}
+		);
+	}),
+
 	flush: auto(function( fn ) {
 		db.query( "DELETE FROM `" + optionsTable + "` WHERE `option_name` = 'rewrite_rules'", fn );
 	}),
@@ -287,9 +360,11 @@ var wordpress = module.exports = {
 	_reset: auto(function( fn ) {
 		Step(
 			function() {
-				db.query( "TRUNCATE TABLE `" + postsTable + "`", this.parallel() );
-				db.query( "TRUNCATE TABLE `" + postmetaTable + "`", this.parallel() );
-				wordpress.flush( this.parallel() );
+				var parallel = this.parallel;
+				[ postmetaTable, postsTable, termsTable, termRelationshipsTable, termTaxonomyTable ].forEach(function( table ) {
+					db.query( "TRUNCATE TABLE `" + table + "`", parallel() );
+				});
+				wordpress.flush( parallel() );
 			},
 
 			function( error ) {

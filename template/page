@@ -58,8 +58,6 @@
 	</div>
 	<div class="block">
 		<h2>Tags</h2>
-		<ul>
-			<li>?</li>
-		</ul>
+		[jq_plugin_keywords]
 	</div>
 </div>
