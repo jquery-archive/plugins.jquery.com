@@ -30,27 +30,44 @@ Handlebars.registerHelper( "person", function( person ) {
 	return new Handlebars.SafeString( ret );
 });
 
-function getTemplate( name, fn ) {
-	if ( templates[ name ] ) {
-		return fn( null, templates[ name ] );
+var Template = module.exports = {
+	get: function( name, fn ) {
+		if ( templates[ name ] ) {
+			return process.nextTick(function() {
+				fn( null, templates[ name ] );
+			});
+		}
+
+		fs.readFile( templatePath + "/" + name, "utf8", function( error, data ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			try {
+				var template = Handlebars.compile( data );
+			} catch ( error ) {
+				return fn( error );
+			}
+
+			templates[ name ] = template;
+			fn( null, template );
+		});
+	},
+
+	render: function( name, data, fn ) {
+		Template.get( name, function( error, template ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			var output;
+			try {
+				output = template( data );
+			} catch( error ) {
+				return fn( error );
+			}
+
+			fn( null, output );
+		});
 	}
-
-	fs.readFile( templatePath + "/" + name, "utf8", function( error, data ) {
-		if ( error ) {
-			return fn( error );
-		}
-
-		try {
-			var template = Handlebars.compile( data );
-		} catch ( error ) {
-			return fn( error );
-		}
-
-		templates[ name ] = template;
-		fn( null, template );
-	});
-}
-
-module.exports = {
-	get: getTemplate
 };

@@ -72,7 +72,6 @@ function createOrUpdatePost( name, title, content, date, fn ) {
 }
 
 function createPost( name, title, content, date, fn ) {
-	// TODO: set all datetime fields
 	var localDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +
 			date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds(),
 		gmtDate = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + date.getUTCDate() + " " +
@@ -295,7 +294,9 @@ var wordpress = module.exports = {
 				}
 
 				setMeta( plugin, "versions", JSON.stringify( versions ), this.parallel() );
-				// TODO: delete first
+				// TODO: does a full delete + insert increase our ids too fast?
+				db.query( "DELETE FROM `" + termRelationshipsTable + "` WHERE `object_id` = ?",
+					[ mainId ], this.parallel() );
 				db.query( "INSERT INTO `" + termRelationshipsTable + "` (`object_id`, `term_taxonomy_id`) " +
 					"(SELECT ?, `term_taxonomy_id` FROM `" + termRelationshipsTable + "` " +
 					"WHERE `object_id` = ?)",

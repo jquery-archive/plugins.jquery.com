@@ -1,6 +1,7 @@
 var semver = require( "semver" ),
 	Step = require( "step" ),
-	UserError = require( "./user-error" );
+	UserError = require( "./user-error" ),
+	config = require( "./config" );
 
 function extend( a, b ) {
 	for ( var prop in b ) {
@@ -9,6 +10,16 @@ function extend( a, b ) {
 }
 
 function Repo() {}
+
+extend( Repo.prototype, {
+	getId: function() {
+		return this.service + "/" + this.userName + "/" + this.repoName;
+	},
+
+	getPath: function() {
+		return config.repoDir + "/" + this.getId();
+	}
+});
 
 // package.json
 extend( Repo.prototype, {
@@ -79,50 +90,30 @@ extend( Repo.prototype, {
 
 // versions
 extend( Repo.prototype, {
-	getNewVersions: function( fn ) {
+	getVersionTags: function( fn ) {
 		var repo = this;
 		Step(
-			// get all new versions
 			function() {
-				repo._getNewVersions( this );
+				repo.getTags( this );
 			},
 
-			// validate each version
-			function( error, versions ) {
+			function( error, tags ) {
 				if ( error ) {
 					return fn( error );
 				}
 
-				if ( !versions.length ) {
-					return fn( null, [] );
-				}
+				return tags.filter(function( version ) {
+					// we allow a v prefix, but nothing else
+					if ( version.charAt( 0 ) === "v" ) {
+						version = version.substring( 1 );
+					}
 
-				var group = this.group();
-				versions.forEach(function( version ) {
-					repo.validateVersion( version, group() );
-				});
-			},
+					// tag is not a clean version number
+					if ( semver.clean( version ) !== version ) {
+						return false;
+					}
 
-			// filter to only valid versions
-			function( error, versions ) {
-				return versions.filter(function( version ) {
-					return !!(version && version.package);
-				});
-			},
-
-			// get dates for each version
-			function( error, versions ) {
-				var group = this.group();
-				versions.forEach(function( version ) {
-					var cb = group();
-					repo.getReleaseDate( version.version, function( error, date ) {
-						if ( error ) {
-							return cb( error );
-						}
-
-						extend( version, { date: date } );
-						cb( null, version );
-					});
+					return semver.valid( version );
 				});
 			},
 
@@ -130,12 +121,29 @@ extend( Repo.prototype, {
 		);
 	},
 
-	validateVersion: function( version, fn ) {
+	getRelease: function( tag, fn ) {
+		this.validateVersion( tag, function( error, package ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			if ( !package ) {
+				return fn( null, null );
+			}
+
+			fn( null, {
+				tag: tag,
+				package: package
+			});
+		});
+	},
+
+	validateVersion: function( tag, fn ) {
 		var repo = this;
 		Step(
 			// get the package.json
 			function() {
-				repo.getPackageJson( version, this );
+				repo.getPackageJson( tag, this );
 			},
 
 			// check if we found a package.json
@@ -158,38 +166,41 @@ extend( Repo.prototype, {
 
 			// validate package.json
 			function( error, package ) {
-				var errors = repo.validatePackageJson( package, version );
+				var errors = repo.validatePackageJson( package, tag );
 
 				if ( errors.length ) {
 					// TODO: report errors to user
-					return fn( null );
+					return fn( null, null );
 				}
 
-				fn( null, {
-					version: version,
-					package: package
-				});
+				fn( null, package );
 			}
 		);
 	}
 });
 
-var services = [];
+var services = {};
 
 module.exports = {
 	Repo: Repo,
 
-	register: function( ServiceRepo ) {
-		services.push( ServiceRepo );
+	register: function( service, ServiceRepo ) {
+		ServiceRepo.prototype.service = service;
+		services[ service ] = ServiceRepo;
 	},
 
-	getRepo: function( data ) {
+	getRepoById: function( id ) {
+		var parts = id.split( "/" );
+		return new services[ parts[ 0 ] ]( parts[ 1 ], parts[ 2 ] );
+	},
+
+	getRepoByHook: function( data ) {
 		// TODO: #4 - Support other code-sharing sites besides GitHub
-		if ( !services[ 0 ].test( data ) ) {
+		if ( !services.github.test( data ) ) {
 			return null;
 		}
 
-		return new services[ 0 ]( data );
+		return new services.github( data );
 	}
 };
 

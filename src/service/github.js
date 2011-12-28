@@ -1,9 +1,9 @@
 var fs = require( "fs" ),
 	exec = require( "child_process" ).exec,
 	semver = require( "semver" ),
+	Step = require( "step" ),
 	mkdirp = require( "mkdirp" ),
-	service = require( "../service" ),
-	config = require( "../config" );
+	service = require( "../service" );
 
 var reGithubUrl = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)(\/.*)?$/;
 
@@ -19,19 +19,26 @@ function extend( a, b ) {
 	}
 }
 
-function GithubRepo( data ) {
+function repoFromHook( data ) {
 	var matches = reGithubUrl.exec( data.url ),
-		userName = matches[ 1 ],
-		repoName = matches[ 2 ],
-		partialPath = "/" + userName + "/" + repoName;
+		repo = new GithubRepo( matches[ 1 ], matches[ 2 ] );
+
+	repo.forks = data.forks;
+	repo.watchers = data.watchers;
+	return repo;
+}
+
+function GithubRepo( userName, repoName ) {
+	if ( arguments.length === 1 ) {
+		return repoFromHook( userName );
+	}
+
+	var partialPath = "/" + userName + "/" + repoName;
 
 	this.userName = userName;
 	this.repoName = repoName;
 	this.siteUrl = "http://github.com" + partialPath;
 	this.sourceUrl = "git://github.com" + partialPath + ".git";
-	this.path = config.repoDir + partialPath;
-	this.forks = data.forks;
-	this.watchers = data.watchers;
 }
 
 GithubRepo.test = function( data ) {
@@ -41,27 +48,52 @@ GithubRepo.test = function( data ) {
 // service interface
 extend( GithubRepo.prototype, new service.Repo );
 extend( GithubRepo.prototype, {
-	service: "github",
-
 	downloadUrl: function( version ) {
 		return this.siteUrl + "/zipball/" + version;
 	},
 
-	_getNewVersions: function( fn ) {
+	getTags: function( fn ) {
 		var repo = this;
-		// make sure the user's directory exists first
-		mkdirp( dirname( this.path ), 0755, function( error ) {
-			if ( error ) {
-				return fn( error );
-			}
+		Step(
+			// make sure the user directory exists
+			function() {
+				mkdirp( dirname( repo.getPath() ), 0755, this );
+			},
 
-			repo.createOrUpdateRepo( fn );
-		});
+			// fetch the repo
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				repo.createOrUpdateRepo( this );
+			},
+
+			// get the tags
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				exec( "git tag", { cwd: repo.getPath() }, this );
+			},
+
+			// parse the tags
+			function( error, stdout ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				var tags = stdout.split( "\n" );
+				tags.pop();
+				fn( null, tags );
+			}
+		);
 	},
 
 	_getPackageJson: function( version, fn ) {
 		version = version || "master";
-		exec( "git show " + version + ":package.json", { cwd: this.path }, function( error, stdout, stderr ) {
+		exec( "git show " + version + ":package.json", { cwd: this.getPath() }, function( error, stdout, stderr ) {
 			// this will also result in an error being passed, so we check stderr first
 			if ( stderr && stderr.substring( 0, 41 ) === "fatal: Path 'package.json' does not exist" ) {
 				return fn( null, null );
@@ -75,8 +107,8 @@ extend( GithubRepo.prototype, {
 		});
 	},
 
-	getReleaseDate: function( version, fn ) {
-		exec( "git log --pretty='%cD' -1 " + version, { cwd: this.path }, function( error, stdout, stderr ) {
+	getReleaseDate: function( tag, fn ) {
+		exec( "git log --pretty='%cD' -1 " + tag, { cwd: this.getPath() }, function( error, stdout ) {
 			if ( error ) {
 				return fn( error );
 			}
@@ -90,7 +122,7 @@ extend( GithubRepo.prototype, {
 extend( GithubRepo.prototype, {
 	createOrUpdateRepo: function( fn ) {
 		var repo = this;
-		fs.stat( this.path, function( error ) {
+		fs.stat( this.getPath(), function( error ) {
 			// repo already exists
 			if ( !error ) {
 				return repo.updateRepo( fn );
@@ -106,69 +138,16 @@ extend( GithubRepo.prototype, {
 	},
 
 	createRepo: function( fn ) {
-		var repo = this;
-		exec( "git clone " + this.sourceUrl + " " + this.path, function( error, stdout, stderr ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			// TODO: handle stderr
-
-			repo.getVersions( fn );
+		exec( "git clone " + this.sourceUrl + " " + this.getPath(), function( error ) {
+			fn( error );
 		});
 	},
 
 	updateRepo: function( fn ) {
-		var repo = this;
-		this.getVersions(function( error, prevVersions ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			exec( "git fetch -t", { cwd: repo.path }, function( error, stdout, stderr ) {
-				if ( error ) {
-					return fn( error );
-				}
-
-				// TODO: handle stderr
-
-				repo.getVersions(function( error, versions ) {
-					if ( error ) {
-						return fn( error );
-					}
-
-					fn( null, versions.filter(function( version ) {
-						return prevVersions.indexOf( version ) === -1;
-					}));
-				});
-			});
-		});
-	},
-
-	getVersions: function( fn ) {
-		exec( "git tag", { cwd: this.path }, function( error, stdout, stderr ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			var tags = stdout.split( "\n" );
-			tags.pop();
-			tags = tags.filter(function( version ) {
-				// we allow a v prefix, but nothing else
-				if ( version.charAt( 0 ) === "v" ) {
-					version = version.substring( 1 );
-				}
-
-				// tag is not a clean version number
-				if ( semver.clean( version ) !== version ) {
-					return false;
-				}
-
-				return semver.valid( version );
-			});
-			fn( null, tags );
+		exec( "git fetch -t", { cwd: this.getPath() }, function( error ) {
+			fn( error );
 		});
 	}
 });
 
-service.register( GithubRepo );
+service.register( "github", GithubRepo );

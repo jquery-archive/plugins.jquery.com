@@ -28,7 +28,7 @@ function auto( fn ) {
 
 var pluginsDb = module.exports = {
 	getOwner: auto(function( plugin, fn ) {
-		db.get( "SELECT owner FROM owners WHERE plugin = ?",
+		db.get( "SELECT owner FROM plugins WHERE plugin = ?",
 			[ plugin ], function( error, row ) {
 				if ( error ) {
 					return fn( error );
@@ -43,7 +43,7 @@ var pluginsDb = module.exports = {
 	}),
 
 	setOwner: auto(function( plugin, owner, fn ) {
-		db.run( "INSERT INTO owners( plugin, owner ) VALUES( ?, ? )",
+		db.run( "INSERT INTO plugins( plugin, owner ) VALUES( ?, ? )",
 			[ plugin, owner ], function( error ) {
 				if ( error ) {
 					return fn( error );
@@ -69,25 +69,58 @@ var pluginsDb = module.exports = {
 		});
 	}),
 
-	addVersion: auto(function( repoDetails, package, fn ) {
-		// TODO: verify what data we need to store (build restore functionality to confirm)
-		var data = JSON.stringify({
-			git: repoDetails.git,
-			package: package
+	getTags: auto(function( repoId, fn ) {
+		db.all( "SELECT tag FROM repos WHERE repo = ?", [ repoId ], function( error, tags ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			var ret = {};
+			tags.forEach(function( tag ) {
+				ret[ tag.tag ] = true;
+			});
+			fn( null, ret );
 		});
-		// TODO: should we track timestamps so we can replay actions since a specific date?
+	}),
+
+	addTag: auto(function( repoId, tag, fn ) {
+		db.run( "INSERT INTO repos( repo, tag ) VALUES( ?, ? )", [ repoId, tag ], fn );
+	}),
+
+	addRelease: auto(function( repoId, release, fn ) {
+		var data = JSON.stringify({
+			repo: repoId,
+			tag: release.tag,
+			package: release.package
+		});
+
 		db.run( "INSERT INTO actions( action, data ) VALUES( ?, ? )",
-			[ "addVersion", data ], function( error ) {
+			[ "addRelease", data ], function( error ) {
 				if ( error ) {
 					return fn( error );
 				}
 
-				fn( null );
+				pluginsDb.addTag( repoId, release.tag, fn );
 			});
 	}),
 
-	getAllActions: auto(function( fn ) {
-		db.all( "SELECT * FROM actions", fn );
+	updatePlugin: auto(function( plugin, owner, data, fn ) {
+		db.run( "UPDATE plugins SET watchers = ?, forks = ? " +
+			"WHERE plugin = ? AND owner = ?",
+			[ data.watchers, data.forks, plugin, owner ], fn );
+	}),
+
+	getMeta: auto(function( plugin, fn ) {
+		db.get( "SELECT watchers, forks FROM plugins WHERE plugin = ?",
+			[ plugin ], fn );
+	}),
+
+	getFirstAction: auto(function( fn ) {
+		db.get( "SELECT * FROM actions ORDER BY id ASC LIMIT 1", fn );
+	}),
+
+	getNextAction: auto(function( id, fn ) {
+		db.get( "SELECT * FROM actions WHERE id > " + id + " ORDER BY id ASC LIMIT 1", fn );
 	}),
 
 	_reset: function( fn ) {
@@ -112,9 +145,16 @@ var pluginsDb = module.exports = {
 					return fn( error );
 				}
 
-				db.run( "CREATE TABLE owners (" +
+				db.run( "CREATE TABLE plugins (" +
 					"plugin TEXT PRIMARY KEY, " +
-					"owner TEXT " +
+					"owner TEXT, " +
+					"watchers INTEGER DEFAULT 0, " +
+					"forks INTEGER DEFAULT 0" +
+				")", this.parallel() );
+
+				db.run( "CREATE TABLE repos (" +
+					"repo TEXT, " +
+					"tag TEXT" +
 				")", this.parallel() );
 
 				db.run( "CREATE TABLE actions (" +

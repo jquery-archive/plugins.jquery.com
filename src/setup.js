@@ -9,6 +9,7 @@ Step(
 		pluginsDb._reset( this.parallel() );
 		wordpress._reset( this.parallel() );
 		rimraf( config.repoDir, this.parallel() );
+		rimraf( "last-action", this.parallel() );
 	},
 
 	function( error ) {
