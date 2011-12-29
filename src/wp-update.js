@@ -136,32 +136,10 @@ actions.addRelease = function( data, fn ) {
 	);
 };
 
-function processAction( action, fn ) {
-	if ( !action ) {
-		console.log( "No actions." );
-		return fn( null );
-	}
-
+function processActionsSince( actionId, fn ) {
 	Step(
 		function() {
-			actions[ action.action ]( JSON.parse( action.data ), this );
-		},
-
-		function( error ) {
-			console.log( "Processed action", action.id );
-			if ( error ) {
-				return fn( error );
-			}
-
-			fs.writeFile( "last-action", action.id, this );
-		},
-
-		function( error ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			pluginsDb.getNextAction( action.id, this );
+			processNextAction( actionId, this );
 		},
 
 		function( error, action ) {
@@ -169,42 +147,89 @@ function processAction( action, fn ) {
 				return fn( error );
 			}
 
-			processAction( action, fn );
+			// no more actions, wait then try again
+			if ( !action ) {
+				setTimeout(function() {
+					processActionsSince( actionId, fn );
+				}, 5000 );
+				return;
+			}
+
+			this.parallel()( null, action );
+			fs.writeFile( "last-action", action.id, this.parallel() );
+		},
+
+		function( error, action ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			processActionsSince( action.id, fn );
 		}
 	);
 }
 
-Step(
-	function() {
-		fs.readFile( "last-action", "utf8", this );
-	},
+function processNextAction( actionId, fn ) {
+	Step(
+		function() {
+			if ( actionId ) {
+				pluginsDb.getNextAction( actionId, this );
+			} else {
+				pluginsDb.getFirstAction( this );
+			}
+		},
 
-	function( error, lastAction ) {
-		if ( error && error.code === "ENOENT" ) {
-			return pluginsDb.getFirstAction( this );
+		function( error, action ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			if ( !action ) {
+				return fn( null, null );
+			}
+
+			this.parallel()( null, action );
+			actions[ action.action ]( JSON.parse( action.data ), this.parallel() );
+		},
+
+		function( error, action ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			fn( null, action );
 		}
+	);
+}
 
-		if ( error ) {
-			console.log( "ERROR" );
-			console.log( error );
-			return;
+function processActions( fn ) {
+	Step(
+		function() {
+			fs.readFile( "last-action", "utf8", this );
+		},
+
+		function( error, lastAction ) {
+			if ( error && error.code === "ENOENT" ) {
+				return null;
+			}
+
+			if ( error ) {
+				return fn( error );
+			}
+
+			return JSON.parse( lastAction );
+		},
+
+		function( error, actionId ) {
+			processActionsSince( actionId, this );
+		},
+
+		function( error ) {
+			fn( error );
 		}
+	);
+}
 
-		lastAction = JSON.parse( lastAction );
-		pluginsDb.getNextAction( lastAction, this );
-	},
-
-	function( error, action ) {
-		processAction( action, this );
-	},
-
-	function( error ) {
-		wordpress.end();
-		console.log( "DONE" );
-		if ( error ) {
-			console.log( error );
-			console.log( error.stack );
-			return;
-		}
-	}
-);
+processActions(function( error ) {
+	console.error( error );
+});

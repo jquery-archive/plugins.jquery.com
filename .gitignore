@@ -1,4 +1,5 @@
 config.json
 last-action
 plugins.db
+retry.db
 node_modules
