@@ -22,7 +22,7 @@ file. It must be actual JSON, not just a JavaScript object literal.
 * <a href="#field-description">description</a>
 * <a href="#field-keywords">keywords</a>
 * <a href="#field-homepage">homepage</a>
-* <a href="#field-contributors">contributors</a>
+* <a href="#field-maintainers">maintainers</a>
 * <a href="#field-files">files</a>
 
 ## <a name="field-name">name</a>
@@ -112,7 +112,7 @@ discover your plugin as it's listed on the jQuery Plugins Site.
 
 The url to the plugin homepage.
 
-## <a name="field-contributors">contributors</a>
+## <a name="field-maintainers">maintainers</a>
 
 An array of people.
 
