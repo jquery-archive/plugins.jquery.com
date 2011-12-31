@@ -55,18 +55,9 @@ extend( GithubRepo.prototype, {
 	getTags: function( fn ) {
 		var repo = this;
 		Step(
-			// make sure the user directory exists
-			function() {
-				mkdirp( dirname( repo.getPath() ), 0755, this );
-			},
-
 			// fetch the repo
-			function( error ) {
-				if ( error ) {
-					return fn( error );
-				}
-
-				repo.createOrUpdateRepo( this );
+			function() {
+				repo.fetchRepo( this );
 			},
 
 			// get the tags
@@ -120,33 +111,43 @@ extend( GithubRepo.prototype, {
 
 // internals
 extend( GithubRepo.prototype, {
-	createOrUpdateRepo: function( fn ) {
+	fetchRepo: function( fn ) {
 		var repo = this;
-		fs.stat( this.getPath(), function( error ) {
-			// repo already exists
-			if ( !error ) {
-				return repo.updateRepo( fn );
+
+		Step(
+			// make sure the user directory exists
+			function() {
+				mkdirp( dirname( repo.getPath() ), 0755, this );
+			},
+
+			// check if the repo already exists
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fs.stat( repo.getPath(), this );
+			},
+
+			// create or update the repo
+			function( error ) {
+				// repo already exists
+				if ( !error ) {
+					exec( "git fetch -t", { cwd: repo.getPath() }, this );
+				}
+
+				// error other than repo not existing
+				if ( error.code !== "ENOENT" ) {
+					return fn( error );
+				}
+
+				exec( "git clone " + repo.sourceUrl + " " + repo.getPath(), this );
+			},
+
+			function( error ) {
+				fn( error );
 			}
-
-			// error other than repo not existing
-			if ( error.code !== "ENOENT" ) {
-				return fn( error );
-			}
-
-			repo.createRepo( fn );
-		});
-	},
-
-	createRepo: function( fn ) {
-		exec( "git clone " + this.sourceUrl + " " + this.getPath(), function( error ) {
-			fn( error );
-		});
-	},
-
-	updateRepo: function( fn ) {
-		exec( "git fetch -t", { cwd: this.getPath() }, function( error ) {
-			fn( error );
-		});
+		);
 	}
 });
 

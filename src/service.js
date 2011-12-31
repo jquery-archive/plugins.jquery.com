@@ -46,6 +46,7 @@ extend( Repo.prototype, {
 	validatePackageJson: function( package, version ) {
 		var errors = [];
 
+		// TODO: name cannot be a semver
 		if ( !package.name ) {
 			errors.push( "Missing required field: name." );
 		} else if ( package.name.charAt( 0 ) === "_" || package.name.charAt( 0 ) === "." ) {

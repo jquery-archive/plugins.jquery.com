@@ -8,8 +8,8 @@ var fs = require( "fs" ),
 
 process.on( "uncaughtException", function( error ) {
 	// TODO: log error to file
+	wordpress.end();
 	console.error( "uncaught exception" );
-	console.error( error );
 	console.error( error.stack );
 });
 
@@ -24,117 +24,148 @@ actions.addRelease = function( data, fn ) {
 		package = data.package,
 		tag = data.tag;
 
+	function getPageDetails( fn ) {
+		Step(
+			function() {
+				var pluginData = Object.create( package );
+				pluginData._downloadUrl = repo.downloadUrl( tag );
+				pluginData.url = repo.siteUrl;
+				template.render( "page", pluginData, this.parallel() );
+
+				repo.getReleaseDate( tag, this.parallel() );
+			},
+
+			function( error, content, date ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null, {
+					title: package.title,
+					content: content,
+					date: date
+				});
+			}
+		);
+	}
+
 	Step(
-		// generate the version page for WordPress
 		function() {
-			repo.getReleaseDate( tag, this.parallel() );
-
-			var pluginData = Object.create( package );
-			pluginData._downloadUrl = repo.downloadUrl( tag );
-			pluginData.url = repo.siteUrl;
-			template.render( "page", pluginData, this.parallel() );
+			getPageDetails( this.parallel() );
+			wordpress.getVersions( package.name, this.parallel() );
 		},
 
-		// create the version page in WordPress
-		function( error, date, page ) {
+		function( error, pageDetails, versions ) {
 			if ( error ) {
-				// TODO: log failure for retry
 				return fn( error );
 			}
 
-			wordpress.addVersionedPlugin( package, page, date, this );
+			// this version is the latest if:
+			// - this is the first version (there is no existing latest version)
+			// - this version is stable and greater than the existing latest version
+			// - both versions are unstable and the current version is greater
+			var mainPage,
+				isLatest = !versions.latest ||
+					((isStable( package.version ) || !isStable( versions.latest )) &&
+						semver.gt( package.version, versions.latest )),
+				latest = isLatest ? package.version : versions.latest,
+				listed = versions.listed
+					.concat( package.version )
+					.sort( semver.compare );
+
+			// if the latest is not stable, then all versions are not stable
+			// if the latest is stable, remove any unstable versions less than latest
+			if ( isStable( latest ) ) {
+				listed = listed.filter(function( version ) {
+					return isStable( version ) || semver.gt( version, latest );
+				});
+			}
+
+			this.parallel()( null, listed );
+			this.parallel()( null, latest );
+			this.parallel()( null, pageDetails );
+
+			if ( isLatest ) {
+				mainPage = Object.create( pageDetails );
+				mainPage.name = package.name;
+				mainPage.draft = true;
+				wordpress.createPage( mainPage, package, this.parallel() );
+			} else {
+				wordpress.getPageId( package.name, this.parallel() );
+			}
 		},
 
-		// get existing versions
+		function( error, versions, latest, pageDetails, mainPageId ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			this.parallel()( null, versions );
+			this.parallel()( null, latest );
+
+			pluginsDb.getMeta( package.name, this.parallel() );
+
+			pageDetails.name = package.version;
+			pageDetails.parent = mainPageId;
+			wordpress.createPage( pageDetails, package, this.parallel() );
+		},
+
+		function( error, versions, latest, meta ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			wordpress.setVersions( package.name, versions, latest, this.parallel() );
+			wordpress.setMeta( package.name, meta, this.parallel() );
+			wordpress.publish( package.name, this.parallel() );
+		},
+
 		function( error ) {
 			if ( error ) {
-				// TODO: log failure for retry
 				return fn( error );
 			}
 
-			console.log( "Added " + package.name + " " + package.version + " to WordPress" );
-			wordpress.getVersions( package.name, this );
-		},
-
-		// update WordPress to list new versions
-		function( error, versions ) {
-			if ( error ) {
-				// TODO: log failure for retry
-				return fn( error );
-			}
-
-			var latest, filteredVersions;
-
-			versions = versions.concat( package.version ).sort( semver.compare ).reverse();
-			filteredVersions = versions.filter(function( version ) {
-				if ( latest ) {
-					return isStable( version );
-				}
-				if ( isStable( version ) ) {
-					latest = version;
-				}
-				return true;
-			});
-
-			// no stable relases yet, show latest pre-release
-			if ( !latest ) {
-				latest = filteredVersions[ 0 ];
-			}
-
-			wordpress.setVersions( package.name, filteredVersions, latest, this );
-		},
-
-		// finalize/publish versioned page
-		function( error ) {
-			if ( error ) {
-				// TODO: log failure for retry
-				return fn( error );
-			}
-
-			wordpress.finalizePendingVersions( package.name, this );
-		},
-
-		// get watchers and forks from plugins DB
-		function( error ) {
-			if ( error ) {
-				// TODO: log failure for retry
-				return fn( error );
-			}
-
-			pluginsDb.getMeta( package.name, this );
-		},
-
-		// update watchers and forks in WordPress
-		function( error, meta ) {
-			if ( error ) {
-				// TODO: log failure for retry
-				return fn( error );
-			}
-
-			wordpress.updateMeta( package.name, meta, this );
-		},
-
-		// flush redirect rules
-		function( error ) {
-			if ( error ) {
-				// TODO: log failure for retry
-				return fn( error );
-			}
-
-			console.log( "Updated " + package.name + " in WordPress" );
 			wordpress.flush( this );
 		},
 
 		function( error ) {
-			if ( error ) {
-				// TODO: log failure for retry
-				return fn( error );
-			}
-
-			fn( null );
+			console.log( "Added", package.name, package.version, "to WordPress" );
+			fn( error );
 		}
 	);
 };
+
+
+
+
+
+function processActions( fn ) {
+	Step(
+		function() {
+			fs.readFile( "last-action", "utf8", this );
+		},
+
+		function( error, lastAction ) {
+			if ( error && error.code === "ENOENT" ) {
+				return null;
+			}
+
+			if ( error ) {
+				return fn( error );
+			}
+
+			return JSON.parse( lastAction );
+		},
+
+		function( error, actionId ) {
+			processActionsSince( actionId, this );
+		},
+
+		function( error ) {
+			fn( error );
+		}
+	);
+}
 
 function processActionsSince( actionId, fn ) {
 	Step(
@@ -202,34 +233,7 @@ function processNextAction( actionId, fn ) {
 	);
 }
 
-function processActions( fn ) {
-	Step(
-		function() {
-			fs.readFile( "last-action", "utf8", this );
-		},
-
-		function( error, lastAction ) {
-			if ( error && error.code === "ENOENT" ) {
-				return null;
-			}
-
-			if ( error ) {
-				return fn( error );
-			}
-
-			return JSON.parse( lastAction );
-		},
-
-		function( error, actionId ) {
-			processActionsSince( actionId, this );
-		},
-
-		function( error ) {
-			fn( error );
-		}
-	);
-}
-
 processActions(function( error ) {
-	console.error( error );
+	wordpress.end();
+	console.error( error.stack );
 });
