@@ -1,9 +1,8 @@
-var hook = require( "./hook" );
+var hook = require( "./hook" ),
+	logger = require( "./logger" );
 
 process.on( "uncaughtException", function( error ) {
-	// TODO: log error to file
-	console.error( "uncaught exception" );
-	console.error( error.stack );
+	logger.error( "Uncaught exception: " + error.stack );
 });
 
 hook.processHook({
@@ -11,9 +10,7 @@ hook.processHook({
 	watchers: 25,
 	forks: 3
 }, function( error, data ) {
-	// TODO: log error to file
 	if ( error ) {
-		console.error( error );
-		console.error( error.stack );
+		logger.error( "Error processing hook: " + error.stack );
 	}
 });

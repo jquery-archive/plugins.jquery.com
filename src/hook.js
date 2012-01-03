@@ -3,13 +3,14 @@ var semver = require( "semver" ),
 	UserError = require( "./user-error" ),
 	pluginsDb = require( "./pluginsdb" ),
 	service = require( "./service" ),
-	retry = require( "./retrydb" );
+	retry = require( "./retrydb" ),
+	logger = require( "./logger" );
 
 function processHook( data, fn ) {
 	var repo = service.getRepoByHook( data );
 
 	if ( !repo ) {
-		// TODO: log and bail (no retry)
+		logger.warn( "Could not parse hook: " + JSON.stringify( data ) );
 		return fn( new Error( "Could not parse hook." ) );
 	}
 
@@ -132,6 +133,7 @@ function processRelease( repo, release, fn ) {
 			// the plugin is owned by someone else
 			if ( owner !== repo.userName ) {
 				// TODO: report error to user
+				logger.log( repo.userName + " attempted to add " + release.package.name + " which is owned by " + owner );
 				return fn( new UserError( "Plugin " + release.package.name + " is owned by " + owner + "." ) );
 			}
 
@@ -150,7 +152,7 @@ function processRelease( repo, release, fn ) {
 				return fn( error );
 			}
 
-			console.log( "Added " + release.package.name + " " + release.package.version + " to plugins DB" );
+			logger.log( "Added " + release.package.name + " v" + release.package.version + " to plugins DB" );
 			fn( null, release );
 		}
 	);

@@ -4,13 +4,12 @@ var fs = require( "fs" ),
 	template = require( "./template" ),
 	wordpress = require( "./wordpress" ),
 	pluginsDb = require( "./pluginsdb" ),
-	service = require( "./service" );
+	service = require( "./service" ),
+	logger = require( "./logger" );
 
 process.on( "uncaughtException", function( error ) {
-	// TODO: log error to file
 	wordpress.end();
-	console.error( "uncaught exception" );
-	console.error( error.stack );
+	logger.error( "Uncaught exception: " + error.stack );
 });
 
 function isStable( version ) {
@@ -129,7 +128,7 @@ actions.addRelease = function( data, fn ) {
 		},
 
 		function( error ) {
-			console.log( "Added", package.name, package.version, "to WordPress" );
+			logger.log( "Added " + package.name + " v" + package.version + " to WordPress" );
 			fn( error );
 		}
 	);
@@ -235,5 +234,5 @@ function processNextAction( actionId, fn ) {
 
 processActions(function( error ) {
 	wordpress.end();
-	console.error( error.stack );
+	logger.error( "Error updating WordPress: " + error.stack );
 });

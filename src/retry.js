@@ -4,9 +4,7 @@ var Step = require( "step" ),
 	retry = require( "./retrydb" );
 
 process.on( "uncaughtException", function( error ) {
-	// TODO: log error to file
-	console.error( "uncaught exception" );
-	console.error( error.stack );
+	logger.error( "Uncaught exception: " + error.stack );
 });
 
 // exponential backoff for retries, with a max of 2 minutes
@@ -85,5 +83,5 @@ function processFailures( fn ) {
 }
 
 processFailures(function( error ) {
-	console.error( error.stack );
+	logger.error( "Error during retry: " + error.stack );
 });
