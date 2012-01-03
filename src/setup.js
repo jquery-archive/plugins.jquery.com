@@ -2,7 +2,7 @@ var Step = require( "step" ),
 	rimraf = require( "rimraf" ),
 	pluginsDb = require( "./pluginsdb" ),
 	wordpress = require( "./wordpress" ),
-	retry = require( "./retry" ),
+	retry = require( "./retrydb" ),
 	config = require( "./config" );
 
 Step(

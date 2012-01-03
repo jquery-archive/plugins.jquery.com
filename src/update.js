@@ -3,7 +3,6 @@ var hook = require( "./hook" );
 process.on( "uncaughtException", function( error ) {
 	// TODO: log error to file
 	console.error( "uncaught exception" );
-	console.error( error );
 	console.error( error.stack );
 });
 

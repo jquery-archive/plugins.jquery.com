@@ -3,7 +3,7 @@ var semver = require( "semver" ),
 	UserError = require( "./user-error" ),
 	pluginsDb = require( "./pluginsdb" ),
 	service = require( "./service" ),
-	retry = require( "./retry" );
+	retry = require( "./retrydb" );
 
 function processHook( data, fn ) {
 	var repo = service.getRepoByHook( data );
