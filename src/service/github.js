@@ -57,7 +57,7 @@ extend( GithubRepo.prototype, {
 		Step(
 			// fetch the repo
 			function() {
-				repo.fetchRepo( this );
+				repo.fetch( this );
 			},
 
 			// get the tags
@@ -106,12 +106,16 @@ extend( GithubRepo.prototype, {
 
 			fn( null, new Date( stdout ) );
 		});
+	},
+
+	restore: function( fn ) {
+		this.fetch( fn );
 	}
 });
 
 // internals
 extend( GithubRepo.prototype, {
-	fetchRepo: function( fn ) {
+	fetch: function( fn ) {
 		var repo = this;
 
 		Step(
@@ -133,7 +137,7 @@ extend( GithubRepo.prototype, {
 			function( error ) {
 				// repo already exists
 				if ( !error ) {
-					exec( "git fetch -t", { cwd: repo.getPath() }, this );
+					return exec( "git fetch -t", { cwd: repo.getPath() }, this );
 				}
 
 				// error other than repo not existing

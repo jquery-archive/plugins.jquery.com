@@ -123,6 +123,18 @@ var pluginsDb = module.exports = {
 		db.get( "SELECT * FROM actions WHERE id > " + id + " ORDER BY id ASC LIMIT 1", fn );
 	}),
 
+	getAllRepos: auto(function( fn ) {
+		db.all( "SELECT DISTINCT(repo) FROM repos", function( error, rows ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			fn( null, rows.map(function( row ) {
+				return row.repo;
+			}));
+		});
+	}),
+
 	_reset: function( fn ) {
 		var fs = require( "fs" ),
 			Step = require( "step" );
