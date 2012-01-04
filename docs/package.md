@@ -22,6 +22,8 @@ file. It must be actual JSON, not just a JavaScript object literal.
 * <a href="#field-description">description</a>
 * <a href="#field-keywords">keywords</a>
 * <a href="#field-homepage">homepage</a>
+* <a href="#field-docs">docs</a>
+* <a href="#field-demo">demo</a>
 * <a href="#field-maintainers">maintainers</a>
 * <a href="#field-files">files</a>
 
@@ -111,6 +113,14 @@ discover your plugin as it's listed on the jQuery Plugins Site.
 ## <a name="field-homepage">homepage</a>
 
 The url to the plugin homepage.
+
+## <a name="field-docs">docs</a>
+
+The url to the plugin documentation.
+
+## <a name="field-demo">demo</a>
+
+The url to the plugin demo or demos.
 
 ## <a name="field-maintainers">maintainers</a>
 
