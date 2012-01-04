@@ -5,12 +5,16 @@ process.on( "uncaughtException", function( error ) {
 	logger.error( "Uncaught exception: " + error.stack );
 });
 
-hook.processHook({
-	url: "http://github.com/scottgonzalez/temp-jquery-foo",
-	watchers: 25,
-	forks: 3
-}, function( error, data ) {
-	if ( error ) {
-		logger.error( "Error processing hook: " + error.stack );
-	}
+var json = "";
+process.stdin.resume();
+process.stdin.setEncoding( "utf8" );
+process.stdin.on( "data", function( chunk ) {
+	json += chunk;
+});
+process.stdin.on( "end", function() {
+	hook.processHook( JSON.parse( json ), function( error, data ) {
+		if ( error ) {
+			logger.error( "Error processing hook: " + error.stack );
+		}
+	});
 });

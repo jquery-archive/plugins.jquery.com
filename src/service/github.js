@@ -20,11 +20,11 @@ function extend( a, b ) {
 }
 
 function repoFromHook( data ) {
-	var matches = reGithubUrl.exec( data.url ),
+	var matches = reGithubUrl.exec( data.repository.url ),
 		repo = new GithubRepo( matches[ 1 ], matches[ 2 ] );
 
-	repo.forks = data.forks;
-	repo.watchers = data.watchers;
+	repo.forks = data.repository.forks;
+	repo.watchers = data.repository.watchers;
 	return repo;
 }
 
@@ -42,7 +42,7 @@ function GithubRepo( userName, repoName ) {
 }
 
 GithubRepo.test = function( data ) {
-	return reGithubUrl.test( data.url );
+	return reGithubUrl.test( data.repository && data.repository.url );
 };
 
 // service interface
