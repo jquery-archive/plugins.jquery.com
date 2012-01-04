@@ -285,7 +285,7 @@ function setTerms( postId, terms, fn ) {
 
 /** util **/
 
-function flush ( fn ) {
+function flush( fn ) {
 	db.query( "DELETE FROM `" + optionsTable + "` WHERE `option_name` = 'rewrite_rules'", fn );
 }
 
@@ -424,15 +424,56 @@ var wordpress = module.exports = {
 	},
 
 	_reset: auto(function( fn ) {
+		var path = require( "path" );
+
 		Step(
+			// remove existing content
 			function() {
-				var parallel = this.parallel;
-				[ postmetaTable, postsTable, termsTable, termRelationshipsTable, termTaxonomyTable ].forEach(function( table ) {
-					db.query( "TRUNCATE TABLE `" + table + "`", parallel() );
+				var group = this.group();
+
+				// remove existing content
+				[
+					postmetaTable,
+					postsTable,
+					termsTable,
+					termRelationshipsTable,
+					termTaxonomyTable
+				].forEach(function( table ) {
+					db.query( "TRUNCATE TABLE `" + table + "`", group() );
 				});
-				wordpress.flush( parallel() );
 			},
 
+			// create update page
+			function( error ) {
+				if ( error ) {
+					throw error;
+				}
+
+				db.query( "INSERT INTO `" + postsTable + "` " +
+					"SET `post_type` = 'page', `post_name` = 'update', `post_title` = 'update', " +
+					"`post_status` = 'publish', `post_content_filtered` = ?",
+					[ path.resolve( __dirname, "update.js" ) ], this );
+			},
+
+			// set page template for update page
+			function( error, info ) {
+				if ( error ) {
+					throw error;
+				}
+
+				setMeta( info.insertId, "_wp_page_template", "post-receive.php", this );
+			},
+
+			// clear rewrite rules
+			function( error ) {
+				if ( error ) {
+					throw error;
+				}
+
+				wordpress.flush( this );
+			},
+
+			// close database connection
 			function( error ) {
 				wordpress.end();
 				fn( error );

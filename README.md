@@ -80,9 +80,9 @@ From http://plugins.jquery.com.dev/wp-admin/
 
 3. `npm install`
 
-4. `cp src/config-sample.json src/config.json`
+4. `cp config-sample.json config.json`
 
-5. Edit src/config.json
+5. Edit config.json
     * Set `dbName` to your WordPress MySQL database name
     * Set `dbUser` to your WordPress MySQL database user
     * Set `dbPassword` to your WordPress MySQL database password
