@@ -1,6 +1,5 @@
 var semver = require( "semver" ),
 	Step = require( "step" ),
-	UserError = require( "./user-error" ),
 	pluginsDb = require( "./pluginsdb" ),
 	service = require( "./service" ),
 	retry = require( "./retrydb" ),
@@ -134,7 +133,7 @@ function processRelease( repo, release, fn ) {
 			if ( owner !== repo.userName ) {
 				// TODO: report error to user
 				logger.log( repo.userName + " attempted to add " + release.package.name + " which is owned by " + owner );
-				return fn( new UserError( "Plugin " + release.package.name + " is owned by " + owner + "." ) );
+				return fn( null, null );
 			}
 
 			return owner;

@@ -1,6 +1,5 @@
 var semver = require( "semver" ),
 	Step = require( "step" ),
-	UserError = require( "./user-error" ),
 	config = require( "./config" );
 
 function extend( a, b ) {
@@ -36,7 +35,8 @@ extend( Repo.prototype, {
 			try {
 				var package = JSON.parse( package );
 			} catch( error ) {
-				return fn( new UserError( "Could not parse package.json for " + version + "." ) );
+				// TODO: report error to user?
+				return fn( null, null );
 			}
 
 			fn( null, package );
@@ -150,11 +150,7 @@ extend( Repo.prototype, {
 			// check if we found a package.json
 			function( error, package ) {
 				if ( error ) {
-					if ( error.userError ) {
-						// TODO: report error to user
-					} else {
-						// TODO: log error for retry
-					}
+					// TODO: log error for retry
 					return fn( error );
 				}
 
