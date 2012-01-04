@@ -86,7 +86,7 @@ extend( GithubRepo.prototype, {
 		version = version || "master";
 		exec( "git show " + version + ":package.json", { cwd: this.getPath() }, function( error, stdout, stderr ) {
 			// this will also result in an error being passed, so we check stderr first
-			if ( stderr && stderr.substring( 0, 41 ) === "fatal: Path 'package.json' does not exist" ) {
+			if ( stderr && stderr.substring( 0, 11 ) === "fatal: Path" ) {
 				return fn( null, null );
 			}
 
