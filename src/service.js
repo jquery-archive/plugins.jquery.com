@@ -46,11 +46,15 @@ extend( Repo.prototype, {
 	validatePackageJson: function( package, version ) {
 		var errors = [];
 
-		// TODO: name cannot be a semver
 		if ( !package.name ) {
 			errors.push( "Missing required field: name." );
 		} else if ( package.name.charAt( 0 ) === "_" || package.name.charAt( 0 ) === "." ) {
 			errors.push( "Name cannot start with an underscore or dot." );
+		// don't allow semantic version for plugin name
+		// this makes it easier for us to query against pages in the WP database
+		// and semvers would be horrible plugin names anyway
+		} else if ( semver.valid( package.name ) ) {
+			errors.push( "Name cannot be a semantic version." );
 		}
 
 		if ( !package.version ) {
