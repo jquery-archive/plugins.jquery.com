@@ -49,7 +49,10 @@ function processVersions( repo, fn ) {
 
 			return tags.filter(function( tag ) {
 				return !(tag in processedTags);
-			});
+			// only process up to 10 tags per run
+			// this keeps the number of open file descriptors lower
+			// it's unlikely that any update will have more than 10 tags
+			}).slice( -10 );
 		},
 
 		// get releases
@@ -84,7 +87,6 @@ function processVersions( repo, fn ) {
 					return true;
 				}
 
-				// TODO: gracefully handle duplicates in case of retry
 				// track invalid tags so we don't process them on each update
 				pluginsDb.addTag( repo.getId(), tags[ i ], invalidGroup() );
 				return false;

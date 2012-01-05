@@ -84,7 +84,7 @@ var pluginsDb = module.exports = {
 	}),
 
 	addTag: auto(function( repoId, tag, fn ) {
-		db.run( "INSERT INTO repos( repo, tag ) VALUES( ?, ? )", [ repoId, tag ], fn );
+		db.run( "INSERT OR IGNORE INTO repos( repo, tag ) VALUES( ?, ? )", [ repoId, tag ], fn );
 	}),
 
 	addRelease: auto(function( repoId, release, fn ) {
@@ -166,7 +166,8 @@ var pluginsDb = module.exports = {
 
 				db.run( "CREATE TABLE repos (" +
 					"repo TEXT, " +
-					"tag TEXT" +
+					"tag TEXT, " +
+					"PRIMARY KEY( repo, tag ) " +
 				")", this.parallel() );
 
 				db.run( "CREATE TABLE actions (" +
