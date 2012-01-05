@@ -154,7 +154,6 @@ extend( Repo.prototype, {
 			// check if we found a package.json
 			function( error, package ) {
 				if ( error ) {
-					// TODO: log error for retry
 					return fn( error );
 				}
 
@@ -196,7 +195,6 @@ module.exports = {
 	},
 
 	getRepoByHook: function( data ) {
-		// TODO: #4 - Support other code-sharing sites besides GitHub
 		if ( !services.github.test( data ) ) {
 			return null;
 		}
