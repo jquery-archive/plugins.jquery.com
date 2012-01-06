@@ -294,7 +294,7 @@ function flush( fn ) {
 var wordpress = module.exports = {
 	getPageId: auto( getPostId ),
 
-	createPage: auto(function( data, package, fn ) {
+	createPage: auto(function( data, package, meta, fn ) {
 		Step(
 			function() {
 				createOrUpdatePost( data, this );
@@ -307,6 +307,9 @@ var wordpress = module.exports = {
 
 				this.parallel()( null, id );
 				setMeta( id, "package_json", JSON.stringify( package ), this.parallel() );
+				for ( var key in meta ) {
+					setMeta( id, key, meta[ key ], this.parallel() );
+				}
 				setTerms( id, package.keywords, this.parallel() );
 			},
 

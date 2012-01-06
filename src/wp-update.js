@@ -1,7 +1,6 @@
 var fs = require( "fs" ),
 	semver = require( "semver" ),
 	Step = require( "step" ),
-	template = require( "./template" ),
 	wordpress = require( "./wordpress" ),
 	pluginsDb = require( "./pluginsdb" ),
 	service = require( "./service" ),
@@ -26,23 +25,22 @@ actions.addRelease = function( data, fn ) {
 	function getPageDetails( fn ) {
 		Step(
 			function() {
-				var pluginData = Object.create( package );
-				pluginData._downloadUrl = repo.downloadUrl( tag );
-				pluginData.url = repo.siteUrl;
-				template.render( "page", pluginData, this.parallel() );
-
-				repo.getReleaseDate( tag, this.parallel() );
+				repo.getReleaseDate( tag, this );
 			},
 
-			function( error, content, date ) {
+			function( error, date ) {
 				if ( error ) {
 					return fn( error );
 				}
 
 				fn( null, {
 					title: package.title,
-					content: content,
-					date: date
+					content: package.description,
+					date: date,
+					meta: {
+						download_url: repo.downloadUrl( tag ),
+						repo_url: repo.siteUrl
+					}
 				});
 			}
 		);
@@ -88,7 +86,7 @@ actions.addRelease = function( data, fn ) {
 				mainPage = Object.create( pageDetails );
 				mainPage.name = package.name;
 				mainPage.draft = true;
-				wordpress.createPage( mainPage, package, this.parallel() );
+				wordpress.createPage( mainPage, package, pageDetails.meta, this.parallel() );
 			} else {
 				wordpress.getPageId( package.name, this.parallel() );
 			}
@@ -106,7 +104,7 @@ actions.addRelease = function( data, fn ) {
 
 			pageDetails.name = package.version;
 			pageDetails.parent = mainPageId;
-			wordpress.createPage( pageDetails, package, this.parallel() );
+			wordpress.createPage( pageDetails, package, pageDetails.meta, this.parallel() );
 		},
 
 		function( error, versions, latest, meta ) {
