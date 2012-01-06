@@ -39,6 +39,8 @@ function GithubRepo( userName, repoName ) {
 	this.repoName = repoName;
 	this.siteUrl = "http://github.com" + partialPath;
 	this.sourceUrl = "git://github.com" + partialPath + ".git";
+
+	service.Repo.call( this );
 }
 
 GithubRepo.test = function( data ) {
@@ -66,7 +68,7 @@ extend( GithubRepo.prototype, {
 					return fn( error );
 				}
 
-				exec( "git tag", { cwd: repo.getPath() }, this );
+				exec( "git tag", { cwd: repo.path }, this );
 			},
 
 			// parse the tags
@@ -84,7 +86,7 @@ extend( GithubRepo.prototype, {
 
 	_getPackageJson: function( version, fn ) {
 		version = version || "master";
-		exec( "git show " + version + ":package.json", { cwd: this.getPath() }, function( error, stdout, stderr ) {
+		exec( "git show " + version + ":package.json", { cwd: this.path }, function( error, stdout, stderr ) {
 			// this will also result in an error being passed, so we check stderr first
 			if ( stderr && stderr.substring( 0, 11 ) === "fatal: Path" ) {
 				return fn( null, null );
@@ -99,7 +101,7 @@ extend( GithubRepo.prototype, {
 	},
 
 	getReleaseDate: function( tag, fn ) {
-		exec( "git log --pretty='%cD' -1 " + tag, { cwd: this.getPath() }, function( error, stdout ) {
+		exec( "git log --pretty='%cD' -1 " + tag, { cwd: this.path }, function( error, stdout ) {
 			if ( error ) {
 				return fn( error );
 			}
@@ -121,7 +123,7 @@ extend( GithubRepo.prototype, {
 		Step(
 			// make sure the user directory exists
 			function() {
-				mkdirp( dirname( repo.getPath() ), 0755, this );
+				mkdirp( dirname( repo.path ), 0755, this );
 			},
 
 			// check if the repo already exists
@@ -130,14 +132,14 @@ extend( GithubRepo.prototype, {
 					return fn( error );
 				}
 
-				fs.stat( repo.getPath(), this );
+				fs.stat( repo.path, this );
 			},
 
 			// create or update the repo
 			function( error ) {
 				// repo already exists
 				if ( !error ) {
-					return exec( "git fetch -t", { cwd: repo.getPath() }, this );
+					return exec( "git fetch -t", { cwd: repo.path }, this );
 				}
 
 				// error other than repo not existing
@@ -145,7 +147,7 @@ extend( GithubRepo.prototype, {
 					return fn( error );
 				}
 
-				exec( "git clone " + repo.sourceUrl + " " + repo.getPath(), this );
+				exec( "git clone " + repo.sourceUrl + " " + repo.path, this );
 			},
 
 			function( error ) {

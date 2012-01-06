@@ -36,14 +36,14 @@ function processVersions( repo, fn ) {
 	Step(
 		// get all tags for the repo
 		function() {
-			pluginsDb.getTags( repo.getId(), this.parallel() );
+			pluginsDb.getTags( repo.id, this.parallel() );
 			repo.getVersionTags( this.parallel() );
 		},
 
 		// filter to new versions
 		function( error, processedTags, tags ) {
 			if ( error ) {
-				retry.log( "processVersions", repo.getId() );
+				retry.log( "processVersions", repo.id );
 				return fn( error );
 			}
 
@@ -58,7 +58,7 @@ function processVersions( repo, fn ) {
 		// get releases
 		function( error, tags ) {
 			if ( error ) {
-				retry.log( "processVersions", repo.getId() );
+				retry.log( "processVersions", repo.id );
 				return fn( error );
 			}
 
@@ -76,7 +76,7 @@ function processVersions( repo, fn ) {
 		// filter to valid releases
 		function( error, tags, releases ) {
 			if ( error ) {
-				retry.log( "processVersions", repo.getId() );
+				retry.log( "processVersions", repo.id );
 				return fn( error );
 			}
 
@@ -88,7 +88,7 @@ function processVersions( repo, fn ) {
 				}
 
 				// track invalid tags so we don't process them on each update
-				pluginsDb.addTag( repo.getId(), tags[ i ], invalidGroup() );
+				pluginsDb.addTag( repo.id, tags[ i ], invalidGroup() );
 				return false;
 			}));
 		},
@@ -96,7 +96,7 @@ function processVersions( repo, fn ) {
 		// process the releases
 		function( error, releases ) {
 			if ( error ) {
-				retry.log( "processVersions", repo.getId() );
+				retry.log( "processVersions", repo.id );
 				return fn( error );
 			}
 
@@ -121,20 +121,20 @@ function processRelease( repo, release, fn ) {
 		// find out who owns this plugin
 		// if there is no owner, then set the user as the owner
 		function() {
-			pluginsDb.getOrSetOwner( release.package.name, repo.userName, this );
+			pluginsDb.getOrSetOwner( release.package.name, repo.userId, this );
 		},
 
 		// verify the user is the owner
 		function( error, owner ) {
 			if ( error ) {
-				retry.log( "processRelease", repo.getId(), release.tag );
+				retry.log( "processRelease", repo.id, release.tag );
 				return fn( error );
 			}
 
 			// the plugin is owned by someone else
-			if ( owner !== repo.userName ) {
+			if ( owner !== repo.userId ) {
 				// TODO: report error to user
-				logger.log( repo.userName + " attempted to add " + release.package.name + " which is owned by " + owner );
+				logger.log( repo.userId + " attempted to add " + release.package.name + " which is owned by " + owner );
 				return fn( null, null );
 			}
 
@@ -143,13 +143,13 @@ function processRelease( repo, release, fn ) {
 
 		// track the new release
 		function( error, owner ) {
-			pluginsDb.addRelease( repo.getId(), release, this );
+			pluginsDb.addRelease( repo.id, release, this );
 		},
 
 		// finished processing release
 		function( error ) {
 			if ( error ) {
-				retry.log( "processRelease", repo.getId(), release.tag );
+				retry.log( "processRelease", repo.id, release.tag );
 				return fn( error );
 			}
 
@@ -167,7 +167,7 @@ function processMeta( repo, fn ) {
 
 		function( error, package ) {
 			if ( error ) {
-				retry.log( "processMeta", repo.getId() );
+				retry.log( "processMeta", repo.id );
 				return fn( error );
 			}
 
@@ -175,7 +175,7 @@ function processMeta( repo, fn ) {
 				return fn( null );
 			}
 
-			pluginsDb.updatePlugin( package.name, repo.userName, {
+			pluginsDb.updatePlugin( package.name, repo.userId, {
 				watchers: repo.watchers,
 				forks: repo.forks
 			}, this );
@@ -183,7 +183,7 @@ function processMeta( repo, fn ) {
 
 		function( error ) {
 			if ( error ) {
-				retry.log( "processMeta", repo.getId() );
+				retry.log( "processMeta", repo.id );
 				return fn( error );
 			}
 

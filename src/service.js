@@ -8,17 +8,11 @@ function extend( a, b ) {
 	}
 }
 
-function Repo() {}
-
-extend( Repo.prototype, {
-	getId: function() {
-		return this.service + "/" + this.userName + "/" + this.repoName;
-	},
-
-	getPath: function() {
-		return config.repoDir + "/" + this.getId();
-	}
-});
+function Repo() {
+	this.userId = this.service + "/" + this.userName;
+	this.id = this.userId + "/" + this.repoName;
+	this.path = config.repoDir + "/" + this.id;
+}
 
 // package.json
 extend( Repo.prototype, {
