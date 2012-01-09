@@ -109,7 +109,9 @@ extend( Repo.prototype, {
 			}
 			Object.keys( package.dependencies ).forEach(function( dependency ) {
 				// TODO: validate name
-				// TODO: validate version
+				if ( !semver.validRange( package.dependencies[ dependency ] ) ) {
+					errors.push( "Invalid version range for dependency: " + dependency + "." );
+				}
 			});
 		}
 
