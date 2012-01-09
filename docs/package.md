@@ -56,7 +56,7 @@ The *most* important things in your package.json are the name and version fields
 The name and version together form an identifier that is assumed
 to be completely unique. Changes to the plugin should come along with
 changes to the version. Version number must be a valid semantic version number
-per semver.org.
+per [node-semver](https://github.com/isaacs/node-semver).
 
 See [Specifying Versions](#specifying-versions).
 
