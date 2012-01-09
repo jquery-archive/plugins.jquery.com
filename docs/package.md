@@ -232,14 +232,14 @@ digits after the first "x" are ignored.
             "url": "MIT-LICENSE.txt"
         },
         {
-            "type": "GPL",
+            "type": "GPLv2",
             "url": "GPL-LICENSE.txt"
         }
     ],
     "dependencies": {
         "jquery": "1"
     },
-    "description": "The main purpose of this plugin to animate color properties on elements using jQuery's .animate()",
+    "description": "The main purpose of this plugin is to animate color properties on elements using jQuery's .animate()",
     "keywords": [
         "color",
         "animate",
@@ -247,7 +247,7 @@ digits after the first "x" are ignored.
         "hsla"
     ],
     "homepage": "https://github.com/jquery/jquery-color",
-    "contributors": [
+    "maintainers": [
         {
             "name": "Corey Frang",
             "url": "https://github.com/gnarf37"
