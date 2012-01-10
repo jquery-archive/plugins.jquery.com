@@ -351,25 +351,18 @@ var wordpress = module.exports = {
 				}
 
 				if ( !id ) {
-					return fn( null, {
-						listed: [],
-						latest: null
-					});
+					return fn( null, [] );
 				}
 
-				getMeta( id, "versions", this.parallel() );
-				getMeta( id, "latest", this.parallel() );
+				getMeta( id, "versions", this );
 			},
 
-			function( error, versions, latest ) {
+			function( error, versions ) {
 				if ( error ) {
 					return fn( error );
 				}
 
-				fn( null, {
-					listed: versions ? JSON.parse( versions ) : [],
-					latest: latest
-				});
+				fn( null, versions ? JSON.parse( versions ) : [] );
 			}
 		);
 	}),

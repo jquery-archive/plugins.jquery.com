@@ -57,32 +57,32 @@ actions.addRelease = function( data, fn ) {
 				return fn( error );
 			}
 
-			// this version is the latest if:
-			// - this is the first version (there is no existing latest version)
-			// - this version is stable and greater than the existing latest version
-			// - both versions are unstable and the current version is greater
-			var mainPage,
-				isLatest = !versions.latest ||
-					((isStable( package.version ) || !isStable( versions.latest )) &&
-						semver.gt( package.version, versions.latest )),
-				latest = isLatest ? package.version : versions.latest,
-				listed = versions.listed
+			var mainPage, latest,
+				listed = versions
 					.concat( package.version )
-					.sort( semver.compare );
+					.sort( semver.compare )
+					.reverse()
+					.filter(function( version ) {
+						if ( latest ) {
+							return isStable( version );
+						}
+						if ( isStable( version ) ) {
+							latest = version;
+						}
+						return true;
+					})
+					.reverse();
 
-			// if the latest is not stable, then all versions are not stable
-			// if the latest is stable, remove any unstable versions less than latest
-			if ( isStable( latest ) ) {
-				listed = listed.filter(function( version ) {
-					return isStable( version ) || semver.gt( version, latest );
-				});
+			// no stable relases yet, show latest pre-release
+			if ( !latest ) {
+				latest = listed[ listed.length - 1 ];
 			}
 
 			this.parallel()( null, listed );
 			this.parallel()( null, latest );
 			this.parallel()( null, pageDetails );
 
-			if ( isLatest ) {
+			if ( latest === package.version ) {
 				mainPage = Object.create( pageDetails );
 				mainPage.name = package.name;
 				mainPage.draft = true;
