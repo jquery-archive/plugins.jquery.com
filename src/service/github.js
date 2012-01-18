@@ -84,9 +84,22 @@ extend( GithubRepo.prototype, {
 		);
 	},
 
-	_getPackageJson: function( version, fn ) {
+	getPackageJsonFiles: function( tag, fn ) {
+		exec( "git ls-tree " + tag + " --name-only", { cwd: this.path }, function( error, stdout, stderr ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			// filter to *.package.json
+			fn( null, stdout.split( "\n" ).filter(function( file ) {
+				return file.indexOf( ".package.json" ) > 0;
+			}));
+		});
+	},
+
+	_getPackageJson: function( version, file, fn ) {
 		version = version || "master";
-		exec( "git show " + version + ":package.json", { cwd: this.path }, function( error, stdout, stderr ) {
+		exec( "git show " + version + ":" + file, { cwd: this.path }, function( error, stdout, stderr ) {
 			// this will also result in an error being passed, so we check stderr first
 			if ( stderr && stderr.substring( 0, 11 ) === "fatal: Path" ) {
 				return fn( null, null );

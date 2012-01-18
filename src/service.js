@@ -2,6 +2,10 @@ var semver = require( "semver" ),
 	Step = require( "step" ),
 	config = require( "./config" );
 
+var suites = {
+	"github/rdworth/temp-jqueryui": "ui-"
+};
+
 function extend( a, b ) {
 	for ( var prop in b ) {
 		a[ prop ] = b[ prop ];
@@ -12,12 +16,18 @@ function Repo() {
 	this.userId = this.service + "/" + this.userName;
 	this.id = this.userId + "/" + this.repoName;
 	this.path = config.repoDir + "/" + this.id;
+	this.isSuite = this.id in suites;
 }
 
 // package.json
 extend( Repo.prototype, {
-	getPackageJson: function( version, fn ) {
-		this._getPackageJson( version, function( error, package ) {
+	getPackageJson: function( version, file, fn ) {
+		if ( typeof file === "function" ) {
+			fn = file;
+			file = "package.json";
+		}
+
+		this._getPackageJson( version, file, function( error, package ) {
 			if ( error ) {
 				return fn( error );
 			}
@@ -236,6 +246,10 @@ extend( Repo.prototype, {
 	},
 
 	validateVersion: function( tag, fn ) {
+		if ( this.isSuite ) {
+			return this.validateVersion_suite( tag, fn );
+		}
+
 		var repo = this;
 		Step(
 			// get the package.json
@@ -250,7 +264,7 @@ extend( Repo.prototype, {
 				}
 
 				if ( !package ) {
-					return fn( null );
+					return fn( null, null );
 				}
 
 				return package;
@@ -266,6 +280,54 @@ extend( Repo.prototype, {
 				}
 
 				fn( null, package );
+			}
+		);
+	},
+
+	validateVersion_suite: function( tag, fn ) {
+		var repo = this;
+		Step(
+			// get list of package.json files
+			function() {
+				repo.getPackageJsonFiles( tag, this );
+			},
+
+			// get all package.jsons
+			function( error, files ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				if ( !files.length ) {
+					return fn( null, null );
+				}
+
+				var group = this.group();
+				files.forEach(function( file ) {
+					repo.getPackageJson( tag, file, group() );
+				});
+			},
+
+			// validate package.jsons
+			function( error, packages ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				// if any package.json is invalid, then the whole version is invalid
+				if ( packages.some(function( package ) {
+					return !package;
+				})) {
+					return fn( null, null );
+				}
+
+				for ( var i = 0, l = packages.length; i < l; i++ ) {
+					if ( repo.validatePackageJson( packages[ i ], tag ).length ) {
+						return fn( null, null );
+					}
+				}
+
+				fn( null, packages );
 			}
 		);
 	}

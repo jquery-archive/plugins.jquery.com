@@ -117,6 +117,30 @@ function processVersions( repo, fn ) {
 }
 
 function processRelease( repo, release, fn ) {
+	// if this is a suite, process each plugin individually
+	if ( Array.isArray( release.package ) ) {
+		return Step(
+			function() {
+				var group = this.group();
+				release.package.forEach(function( package ) {
+					processRelease( repo, {
+						tag: release.tag,
+						package: package
+					}, group() );
+				});
+			},
+
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fn( null, release );
+			}
+		);
+	}
+
+	// TODO: track plugin name for retry in suites
 	Step(
 		// find out who owns this plugin
 		// if there is no owner, then set the user as the owner
