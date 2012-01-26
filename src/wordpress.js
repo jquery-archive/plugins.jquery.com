@@ -34,9 +34,8 @@ function auto( fn ) {
 	};
 }
 
-// TODO: handle connection error
 function connect() {
-	db = new mysql.createClient({
+	db = mysql.createClient({
 		host: config.dbHost,
 		port: config.dbPort,
 		user: config.dbUser,
@@ -442,7 +441,7 @@ var wordpress = module.exports = {
 			// create update page
 			function( error ) {
 				if ( error ) {
-					throw error;
+					return fn( error );
 				}
 
 				db.query( "INSERT INTO `" + postsTable + "` " +
@@ -454,7 +453,7 @@ var wordpress = module.exports = {
 			// set page template for update page
 			function( error, info ) {
 				if ( error ) {
-					throw error;
+					return fn( error );
 				}
 
 				setMeta( info.insertId, "_wp_page_template", "post-receive.php", this );
@@ -463,7 +462,7 @@ var wordpress = module.exports = {
 			// clear rewrite rules
 			function( error ) {
 				if ( error ) {
-					throw error;
+					return fn( error );
 				}
 
 				wordpress.flush( this );
