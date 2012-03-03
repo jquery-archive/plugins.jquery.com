@@ -1,7 +1,8 @@
 var Step = require( "step" ),
 	hook = require( "./hook" ),
 	service = require( "./service" ),
-	retry = require( "./retrydb" );
+	retry = require( "./retrydb" ),
+	logger = require( "./logger" );
 
 process.on( "uncaughtException", function( error ) {
 	logger.error( "Uncaught exception: " + error.stack );
@@ -19,14 +20,14 @@ actions.processVersions = function( repoId, fn ) {
 	hook.processVersions( repo, fn );
 };
 
-actions.processRelease = function( repoId, tag, fn ) {
+actions.processRelease = function( repoId, tag, file, fn ) {
 	var repo = service.getRepoById( repoId );
-	repo.getRelease( tag, function( error, release ) {
+	repo.getPackageJson( tag, file, function( error, package ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		hook.processRelease( repo, release, fn );
+		hook.processRelease( repo, tag, file, package, fn );
 	});
 };
 

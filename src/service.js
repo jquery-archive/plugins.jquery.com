@@ -229,18 +229,18 @@ extend( Repo.prototype, {
 	},
 
 	getRelease: function( tag, fn ) {
-		this.validateVersion( tag, function( error, package ) {
+		this.validateVersion( tag, function( error, packages ) {
 			if ( error ) {
 				return fn( error );
 			}
 
-			if ( !package ) {
+			if ( !packages ) {
 				return fn( null, null );
 			}
 
 			fn( null, {
 				tag: tag,
-				package: package
+				packages: packages
 			});
 		});
 	},
@@ -279,7 +279,7 @@ extend( Repo.prototype, {
 					return fn( null, null );
 				}
 
-				fn( null, package );
+				fn( null, { "package.json": package } );
 			}
 		);
 	},
@@ -302,6 +302,8 @@ extend( Repo.prototype, {
 					return fn( null, null );
 				}
 
+				this.parallel()( null, files );
+
 				var group = this.group();
 				files.forEach(function( file ) {
 					repo.getPackageJson( tag, file, group() );
@@ -309,7 +311,9 @@ extend( Repo.prototype, {
 			},
 
 			// validate package.jsons
-			function( error, packages ) {
+			function( error, files, packages ) {
+				var mappedPackages = {};
+
 				if ( error ) {
 					return fn( error );
 				}
@@ -325,9 +329,10 @@ extend( Repo.prototype, {
 					if ( repo.validatePackageJson( packages[ i ], tag ).length ) {
 						return fn( null, null );
 					}
+					mappedPackages[ files[ i ] ] = packages[ i ];
 				}
 
-				fn( null, packages );
+				fn( null, mappedPackages );
 			}
 		);
 	}

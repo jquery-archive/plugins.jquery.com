@@ -87,11 +87,12 @@ var pluginsDb = module.exports = {
 		db.run( "INSERT OR IGNORE INTO repos( repo, tag ) VALUES( ?, ? )", [ repoId, tag ], fn );
 	}),
 
-	addRelease: auto(function( repoId, release, fn ) {
+	addRelease: auto(function( repoId, tag, file, package, fn ) {
 		var data = JSON.stringify({
 			repo: repoId,
-			tag: release.tag,
-			package: release.package
+			tag: tag,
+			file: file,
+			package: package
 		});
 
 		db.run( "INSERT INTO actions( action, data ) VALUES( ?, ? )",
@@ -100,7 +101,7 @@ var pluginsDb = module.exports = {
 					return fn( error );
 				}
 
-				pluginsDb.addTag( repoId, release.tag, fn );
+				pluginsDb.addTag( repoId, tag, fn );
 			});
 	}),
 

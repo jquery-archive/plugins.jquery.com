@@ -106,7 +106,9 @@ function processVersions( repo, fn ) {
 
 			var group = this.group();
 			releases.forEach(function( release ) {
-				processRelease( repo, release, group() );
+				for ( file in release.packages ) {
+					processRelease( repo, release.tag, file, release.packages[ file ], group() );
+				}
 			});
 		},
 
@@ -116,49 +118,26 @@ function processVersions( repo, fn ) {
 	);
 }
 
-function processRelease( repo, release, fn ) {
-	// if this is a suite, process each plugin individually
-	if ( Array.isArray( release.package ) ) {
-		return Step(
-			function() {
-				var group = this.group();
-				release.package.forEach(function( package ) {
-					processRelease( repo, {
-						tag: release.tag,
-						package: package
-					}, group() );
-				});
-			},
-
-			function( error ) {
-				if ( error ) {
-					return fn( error );
-				}
-
-				fn( null, release );
-			}
-		);
-	}
-
+function processRelease( repo, tag, file, package, fn ) {
 	// TODO: track plugin name for retry in suites
 	Step(
 		// find out who owns this plugin
 		// if there is no owner, then set the user as the owner
 		function() {
-			pluginsDb.getOrSetOwner( release.package.name, repo.userId, this );
+			pluginsDb.getOrSetOwner( package.name, repo.userId, this );
 		},
 
 		// verify the user is the owner
 		function( error, owner ) {
 			if ( error ) {
-				retry.log( "processRelease", repo.id, release.tag );
+				retry.log( "processRelease", repo.id, tag, file );
 				return fn( error );
 			}
 
 			// the plugin is owned by someone else
 			if ( owner !== repo.userId ) {
 				// TODO: report error to user
-				logger.log( repo.userId + " attempted to add " + release.package.name + " which is owned by " + owner );
+				logger.log( repo.userId + " attempted to add " + package.name + " which is owned by " + owner );
 				return fn( null, null );
 			}
 
@@ -167,18 +146,18 @@ function processRelease( repo, release, fn ) {
 
 		// track the new release
 		function( error, owner ) {
-			pluginsDb.addRelease( repo.id, release, this );
+			pluginsDb.addRelease( repo.id, tag, file, package, this );
 		},
 
 		// finished processing release
 		function( error ) {
 			if ( error ) {
-				retry.log( "processRelease", repo.id, release.tag );
+				retry.log( "processRelease", repo.id, tag, file );
 				return fn( error );
 			}
 
-			logger.log( "Added " + release.package.name + " v" + release.package.version + " to plugins DB" );
-			fn( null, release );
+			logger.log( "Added " + package.name + " v" + package.version + " to plugins DB" );
+			fn( null, package );
 		}
 	);
 }
