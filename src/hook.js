@@ -119,7 +119,6 @@ function processVersions( repo, fn ) {
 }
 
 function processRelease( repo, tag, file, package, fn ) {
-	// TODO: track plugin name for retry in suites
 	Step(
 		// find out who owns this plugin
 		// if there is no owner, then set the user as the owner
