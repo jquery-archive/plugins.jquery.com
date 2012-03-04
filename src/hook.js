@@ -123,7 +123,7 @@ function processRelease( repo, tag, file, package, fn ) {
 		// find out who owns this plugin
 		// if there is no owner, then set the user as the owner
 		function() {
-			pluginsDb.getOrSetOwner( package.name, repo.userId, this );
+			pluginsDb.getOrSetOwner( package.name, repo.userId, repo.id, this );
 		},
 
 		// verify the user is the owner
@@ -164,20 +164,7 @@ function processRelease( repo, tag, file, package, fn ) {
 function processMeta( repo, fn ) {
 	Step(
 		function() {
-			repo.getPackageJson( null, this );
-		},
-
-		function( error, package ) {
-			if ( error ) {
-				retry.log( "processMeta", repo.id );
-				return fn( error );
-			}
-
-			if ( !package || !package.name ) {
-				return fn( null );
-			}
-
-			pluginsDb.updatePlugin( package.name, repo.userId, {
+			pluginsDb.updateRepoMeta( repo.id, {
 				watchers: repo.watchers,
 				forks: repo.forks
 			}, this );

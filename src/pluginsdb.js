@@ -42,9 +42,9 @@ var pluginsDb = module.exports = {
 			});
 	}),
 
-	setOwner: auto(function( plugin, owner, fn ) {
-		db.run( "INSERT INTO plugins( plugin, owner ) VALUES( ?, ? )",
-			[ plugin, owner ], function( error ) {
+	setOwner: auto(function( plugin, owner, repo, fn ) {
+		db.run( "INSERT INTO plugins( plugin, owner, repo ) VALUES( ?, ?, ? )",
+			[ plugin, owner, repo ], function( error ) {
 				if ( error ) {
 					return fn( error );
 				}
@@ -53,8 +53,8 @@ var pluginsDb = module.exports = {
 			});
 	}),
 
-	getOrSetOwner: auto(function( plugin, owner, fn ) {
-		pluginsDb.setOwner( plugin, owner, function( error ) {
+	getOrSetOwner: auto(function( plugin, owner, repo, fn ) {
+		pluginsDb.setOwner( plugin, owner, repo, function( error ) {
 			// successfully set owner (new plugin)
 			if ( !error ) {
 				return fn( null, owner );
@@ -105,10 +105,10 @@ var pluginsDb = module.exports = {
 			});
 	}),
 
-	updatePlugin: auto(function( plugin, owner, data, fn ) {
+	updateRepoMeta: auto(function( repo, data, fn ) {
 		db.run( "UPDATE plugins SET watchers = ?, forks = ? " +
-			"WHERE plugin = ? AND owner = ?",
-			[ data.watchers, data.forks, plugin, owner ], fn );
+			"WHERE repo = ?",
+			[ data.watchers, data.forks, repo ], fn );
 	}),
 
 	getMeta: auto(function( plugin, fn ) {
@@ -161,6 +161,7 @@ var pluginsDb = module.exports = {
 				db.run( "CREATE TABLE plugins (" +
 					"plugin TEXT PRIMARY KEY, " +
 					"owner TEXT, " +
+					"repo TEXT, " +
 					"watchers INTEGER DEFAULT 0, " +
 					"forks INTEGER DEFAULT 0" +
 				")", this.parallel() );
