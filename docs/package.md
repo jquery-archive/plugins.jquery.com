@@ -36,10 +36,11 @@ changes to the version.
 
 The name is what your thing is called. Some tips:
 
-* Don't put "js" or "jquery" in the name. It's assumed that it's js, since you're
-  writing a package.json file, and it's assumed that it's a jQuery plugin, because
-  you're registering it on the jQuery Plugins Site. Additionally, you will be listing
-  `jquery` as a dependency, along with compatible versions (see 'Dependencies' below).
+* Don't put "js" in the name. It's assumed that it's js, since you're
+  writing a package.json file.
+* Do put "jquery" in the name. This may seem like the opposite advice from the previous
+  tip, but this is important for projects loading jQuery plugins and non-jQuery plugins
+  through a module loader.
 * The name ends up being part of a URL. Any name with non-url-safe characters will
   be rejected. Also, it can't start with a dot or an underscore. The jQuery Plugins
   Site is UTF-8.
@@ -48,7 +49,7 @@ The name is what your thing is called. Some tips:
   to see if there's something by that name already, before you get too attached to it.
 * If you have a plugin with the same name as a plugin already in the jQuery Plugins
   Site, either consider renaming your plugin or namespace it. For example, jQuery UI
-  plugins are listed with the "ui-" prefix (e.g. ui-dialog, ui-autocomplete).
+  plugins are listed with the "jquery.ui." prefix (e.g. jquery.ui.dialog, jquery.ui.autocomplete).
 
 ## <a name="field-version">version</a>
 
@@ -219,7 +220,7 @@ digits after the first "x" are ignored.
 
 ```json
 {
-    "name": "color",
+    "name": "jquery.color",
     "version": "2.0.0b1",
     "title": "jQuery.Color()",
     "author": {

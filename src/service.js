@@ -1,10 +1,7 @@
 var semver = require( "semver" ),
 	Step = require( "step" ),
-	config = require( "./config" );
-
-var suites = {
-	"github/rdworth/temp-jqueryui": "ui-"
-};
+	config = require( "./config" ),
+	suites = require( "./suites" );
 
 function extend( a, b ) {
 	for ( var prop in b ) {
@@ -57,13 +54,8 @@ extend( Repo.prototype, {
 			errors.push( "Missing required field: name." );
 		} else if ( typeof package.name !== "string" ) {
 			errors.push( "Invalid data type for name; must be a string." );
-		} else if ( package.name.charAt( 0 ) === "_" || package.name.charAt( 0 ) === "." ) {
-			errors.push( "Name cannot start with an underscore or dot." );
-		// don't allow semantic version for plugin name
-		// this makes it easier for us to query against pages in the WP database
-		// and semvers would be horrible plugin names anyway
-		} else if ( semver.valid( package.name ) ) {
-			errors.push( "Name cannot be a semantic version." );
+		} else if ( !/^jquery\./.test( package.name ) ) {
+			errors.push( "Name must start with 'jquery.'." );
 		}
 
 		if ( !package.version ) {
