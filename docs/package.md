@@ -76,7 +76,7 @@ See [People Fields](#people-fields).
 ## <a name="field-licenses">licenses</a>
 
 Array of licenses under which the plugin is provided. Each license is a hash with
-a "type" property specifying the type of license and a url property linking to the actual text. If the license is one of the official open source licenses the official license name or its abbreviation may be explicated with the "type" property. If an abbreviation is provided (in parentheses), the abbreviation must be used.
+a url property linking to the actual text and an optional "type" property specifying the type of license. If the license is one of the [official open source licenses](http://www.opensource.org/licenses/alphabetical), the official license name or its abbreviation may be explicated with the "type" property.
 
     "licenses": [
        {
