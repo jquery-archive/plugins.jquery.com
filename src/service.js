@@ -16,6 +16,11 @@ function Repo() {
 	this.isSuite = this.id in suites;
 }
 
+function isUrl( str ) {
+	// TOOD: URL validation
+	return true;
+}
+
 // package.json
 extend( Repo.prototype, {
 	getPackageJson: function( version, file, fn ) {
@@ -84,9 +89,13 @@ extend( Repo.prototype, {
 			if ( "email" in package.author && typeof package.author.email !== "string" ) {
 				errors.push( "Invalid data type for author.email; must be a string." );
 			}
-			// TODO: verify url format
-			if ( "url" in package.author && typeof package.author.url !== "string" ) {
-				errors.push( "Invalid data type for author.url; must be a string." );
+
+			if ( "url" in package.author ) {
+				if ( typeof package.author.url !== "string" ) {
+					errors.push( "Invalid data type for author.url; must be a string." );
+				} else if ( !isUrl( package.author.url ) ) {
+					errors.push( "Invalid value for author.url." );
+				}
 			}
 		}
 
@@ -96,9 +105,10 @@ extend( Repo.prototype, {
 			errors.push( "There must be at least one license." );
 		} else {
 			package.licenses.forEach(function( license, i ) {
-				// TDOO: verify url format
 				if ( !license.url ) {
 					errors.push( "Missing required field: licenses[" + i + "].url." );
+				} else if ( !isUrl( license.url ) ) {
+					errors.push( "Invalid value for license.url." );
 				}
 			});
 		}
@@ -136,19 +146,28 @@ extend( Repo.prototype, {
 			}
 		}
 
-		// TODO: verify url format
-		if ( "homepage" in package && typeof package.homepage !== "string" ) {
-			errors.push( "Invalid data type for homepage; must be a string." );
+		if ( "homepage" in package ) {
+			if ( typeof package.homepage !== "string" ) {
+				errors.push( "Invalid data type for homepage; must be a string." );
+			} else if ( !isUrl( package.homepage ) ) {
+				errors.push( "Invalid value for homepage." );
+			}
 		}
 
-		// TODO: verify url format
-		if ( "docs" in package && typeof package.docs !== "string" ) {
-			errors.push( "Invalid data type for docs; must be a string." );
+		if ( "docs" in package ) {
+			if ( typeof package.docs !== "string" ) {
+				errors.push( "Invalid data type for docs; must be a string." );
+			} else if ( !isUrl( package.docs ) ) {
+				errors.push( "Invalid value for docs." );
+			}
 		}
 
-		// TODO: verify url format
-		if ( "demo" in package && typeof package.demo !== "string" ) {
-			errors.push( "Invalid data type for demo; must be a string." );
+		if ( "demo" in package ) {
+			if ( typeof package.demo !== "string" ) {
+				errors.push( "Invalid data type for demo; must be a string." );
+			} else if ( !isUrl( package.demo ) ) {
+				errors.push( "Invalid value for demo." );
+			}
 		}
 
 		if ( "maintainers" in package ) {
@@ -163,9 +182,13 @@ extend( Repo.prototype, {
 					if ( "email" in maintainer && typeof maintainer.email !== "string" ) {
 						errors.push( "Invalid data type for maintainers[" + i + "].email; must be a string." );
 					}
-					// TODO: verify url format
-					if ( "url" in maintainer && typeof maintainer.url !== "string" ) {
-						errors.push( "Invalid data type for maintainers[" + i + "].url; must be a string." );
+
+					if ( "url" in maintainer ) {
+						if ( typeof maintainer.url !== "string" ) {
+							errors.push( "Invalid data type for maintainers[" + i + "].url; must be a string." );
+						} else if ( !isUrl( maintainer.url ) ) {
+							errors.push( "Invalid value for maintainers[" + i + "].url." );
+						}
 					}
 				});
 			}
