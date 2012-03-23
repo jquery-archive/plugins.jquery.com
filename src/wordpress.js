@@ -1,4 +1,5 @@
-var mysql = require( "mysql" ),
+var fs = require( "fs" ),
+	mysql = require( "mysql" ),
 	Step = require( "step" ),
 	config = require( "./config" );
 
@@ -457,6 +458,60 @@ var wordpress = module.exports = {
 				}
 
 				setMeta( info.insertId, "_wp_page_template", "post-receive.php", this );
+			},
+
+			// find all documentation pages to create
+			function( error ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				fs.readdir( path.resolve( __dirname, "../pages" ), this );
+			},
+
+			// read in documentation pages
+			function( error, files ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				this.parallel()( null, files );
+				var group = this.group();
+				files.forEach(function( file ) {
+					fs.readFile( path.resolve( __dirname, "../pages", file ), "utf8", group() );
+				});
+			},
+
+			// generate documentation pages
+			function( error, files, contents ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				var group = this.group();
+				contents.forEach(function( content, i ) {
+					var lines = content.split( "\n" ),
+						title = lines.shift();
+					lines.shift();
+					createPost({
+						name: "_" + files[ i ],
+						title: title,
+						content: lines.join( "\n" ),
+						date: new Date()
+					}, group() );
+				});
+			},
+
+			// set page template for documentation pages
+			function( error, pageIds ) {
+				if ( error ) {
+					return fn( error );
+				}
+
+				var group = this.group();
+				pageIds.forEach(function( id ) {
+					setMeta( id, "_wp_page_template", "blank-page.php", group() );
+				});
 			},
 
 			// clear rewrite rules
