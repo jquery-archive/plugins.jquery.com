@@ -42,8 +42,7 @@ The name is what your thing is called. Some tips:
   tip, but this is important for projects loading jQuery plugins and non-jQuery plugins
   through a module loader.
 * The name ends up being part of a URL. Any name with non-url-safe characters will
-  be rejected. Also, it can't start with a dot or an underscore. The jQuery Plugins
-  Site is UTF-8.
+  be rejected. The jQuery Plugins Site is UTF-8.
 * The name should be short, but also reasonably descriptive.
 * You may want to check [the plugins site](http://plugins.jquery.com/)
   to see if there's something by that name already, before you get too attached to it.
