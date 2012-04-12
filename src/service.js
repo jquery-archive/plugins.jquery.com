@@ -49,7 +49,7 @@ extend( Repo.prototype, {
 		});
 	},
 
-	validatePackageJson: function( package, version ) {
+	validatePackageJson: function( package, version, prefix ) {
 		var errors = [];
 
 		/** required fields **/
@@ -59,8 +59,22 @@ extend( Repo.prototype, {
 			errors.push( "Missing required field: name." );
 		} else if ( typeof package.name !== "string" ) {
 			errors.push( "Invalid data type for name; must be a string." );
-		} else if ( !/^jquery\./.test( package.name ) ) {
-			errors.push( "Name must start with 'jquery.'." );
+		}
+		if ( prefix ) {
+			if ( package.name.indexOf( prefix ) !== 0 ) {
+				errors.push( "Name must start with '" + prefix + "'." );
+			}
+		} else {
+			if ( package.name.indexOf( "jquery." ) !== 0 ) {
+				errors.push( "Name must start with 'jquery.'." );
+			} else {
+				Object.keys( suites ).forEach(function( repoId ) {
+					var prefix = suites[ repoId ];
+					if ( package.name.indexOf( prefix ) === 0 ) {
+						errors.push( "Name must not start with '" + prefix + "'." );
+					}
+				});
+			}
 		}
 
 		if ( !package.version ) {
@@ -341,7 +355,7 @@ extend( Repo.prototype, {
 				}
 
 				for ( var i = 0, l = packages.length; i < l; i++ ) {
-					if ( repo.validatePackageJson( packages[ i ], tag ).length ) {
+					if ( repo.validatePackageJson( packages[ i ], tag, suites[ repo.id ] ).length ) {
 						return fn( null, null );
 					}
 					mappedPackages[ files[ i ] ] = packages[ i ];
