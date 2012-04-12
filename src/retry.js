@@ -55,7 +55,6 @@ function processFailures( fn ) {
 				return;
 			}
 
-			// TODO: if failure count gets too high, email someone
 			this.parallel()( null, failure );
 			setTimeout( this.parallel(), wait( failure.tries ) );
 		},
