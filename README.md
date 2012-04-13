@@ -29,13 +29,13 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 1. Add a `plugins.jquery.com.dev` entry in /etc/hosts
 
-    * `127.0.0.1 plugins.jquery.com.dev`
+ * `127.0.0.1 plugins.jquery.com.dev`
 
 #### web-base-template
 
 1. Download or clone web-base-template
 
-    * `git clone git://github.com/jquery/web-base-template.git`
+ * `git clone git://github.com/jquery/web-base-template.git`
 
 #### WordPress
 
