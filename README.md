@@ -25,17 +25,17 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 ### Installation
 
-### web-base-template
-
-1. Download or clone web-base-template
-
-    * `git clone git://github.com/jquery/web-base-template.git`
-
 #### HOSTS
 
 1. Add a `plugins.jquery.com.dev` entry in /etc/hosts
 
     * `127.0.0.1 plugins.jquery.com.dev`
+
+#### web-base-template
+
+1. Download or clone web-base-template
+
+    * `git clone git://github.com/jquery/web-base-template.git`
 
 #### WordPress
 
@@ -43,23 +43,28 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 2. Follow http://codex.wordpress.org/Installing_WordPress#Famous_5-Minute_Install
 
-3. Redirect your WordPress install to use the web-base-template's theme and config (replacing "[YourWordPressInstallDirectory]" with the actual name of the directory where you installed WordPress)
-    * `rm -rf [YourWordPressInstallDirectory]/wp-content`
-    * `ln -s web-base-template/wordpress/wp-content wordpress/wp-content`
+3. Move `wordpress/wp-config.php` to `wp-config.php` and add the following:
+
+    define( 'WP_CONTENT_DIR', dirname( ABSPATH ) . '/web-base-template' );
+    define( 'WP_CONTENT_URL', 'http://plugins.jquery.com.dev/web-base-template' );
+
+4. Copy `wordpress/index.php` to `index.php` and add update the require at the bottom to be:
+
+    require('./wordpress/wp-blog-header.php');
 
 #### WordPress config
 
-From http://plugins.jquery.com.dev/wp-admin/
+From http://plugins.jquery.com.dev/wordpress/wp-admin/
 
-1. Activate the plugins-jquery-com theme
+1. Update Site Address
+
+ * Select Settings -> General
+ * Set Site Address to http://plugins.jquery.com.local
+
+2. Activate the plugins-jquery-com theme
 
  * Select Appearance -> Themes
  * Under plugins-jquery-com, select 'Activate'
-
-2. Activate the jQuery Slugs plugin
-
- * Select Plugins
- * Under jQuery Slugs, select 'Activate'
 
 3. Set Custom Structure for Permalinks
 
