@@ -1,6 +1,12 @@
 {
 	"repoDir": "/tmp/plugin-repos",
 	"pluginsDb": "plugins.db",
+	"wordpress": {
+		"url": "dev.plugins.jquery.com",
+		"user": "admin",
+		"password": "secret"
+	}
+
 	"dbHost": "localhost",
 	"dbPort": 3306,
 	"dbName": "mysql",

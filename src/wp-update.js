@@ -7,7 +7,6 @@ var fs = require( "fs" ),
 	logger = require( "./logger" );
 
 process.on( "uncaughtException", function( error ) {
-	wordpress.end();
 	logger.error( "Uncaught exception: " + error.stack );
 });
 
@@ -34,100 +33,131 @@ actions.addRelease = function( data, fn ) {
 				}
 
 				fn( null, {
+					type: "page",
+					status: "publish",
 					title: package.title,
 					content: package.description,
 					date: date,
-					meta: {
-						download_url: repo.downloadUrl( tag ),
-						repo_url: repo.siteUrl
-					}
+					customFields: [
+						{ key: "download_url", value: repo.downloadUrl( tag ) },
+						{ key: "repo_url", value: repo.siteUrl },
+						{ key: "package_json", value: JSON.stringify( package ) }
+					]
 				});
 			}
 		);
 	}
 
+	function mergeCustomFields( existing, current ) {
+		current.forEach(function( customField ) {
+			// if the field already exists, update the value
+			for ( var i = 0, length = existing.length - 1; i < length; i++ ) {
+				if ( existing[ i ].key === customField.key ) {
+					existing[ i ].value = customField.value;
+					return;
+				}
+			}
+
+			// the field doesn't exist, so add it
+			existing.push( customField );
+		});
+
+		return existing;
+	}
+
+	function getVersions( page ) {
+		var versions, listed, latest;
+
+		versions = (page.customFields || []).filter(function( customField ) {
+			return customField.key === "versions";
+		});
+		versions = versions.length ? JSON.parse( versions[ 0 ].value ) : [];
+
+		listed = versions
+			.concat( package.version )
+			.sort( semver.compare )
+			.reverse()
+			.filter(function( version ) {
+				if ( latest ) {
+					return isStable( version );
+				}
+				if ( isStable( version ) ) {
+					latest = version;
+				}
+				return true;
+			})
+			.reverse();
+
+		// no stable relases yet, show latest pre-release
+		if ( !latest ) {
+			latest = listed[ listed.length - 1 ];
+		}
+
+		return {
+			all: versions,
+			listed: listed,
+			latest: latest
+		};
+	}
+
 	Step(
-		function() {
+		function getPageData() {
 			getPageDetails( this.parallel() );
-			wordpress.getVersions( package.name, this.parallel() );
-		},
-
-		function( error, pageDetails, versions ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			var mainPage, latest,
-				listed = versions
-					.concat( package.version )
-					.sort( semver.compare )
-					.reverse()
-					.filter(function( version ) {
-						if ( latest ) {
-							return isStable( version );
-						}
-						if ( isStable( version ) ) {
-							latest = version;
-						}
-						return true;
-					})
-					.reverse();
-
-			// no stable relases yet, show latest pre-release
-			if ( !latest ) {
-				latest = listed[ listed.length - 1 ];
-			}
-
-			this.parallel()( null, listed );
-			this.parallel()( null, latest );
-			this.parallel()( null, pageDetails );
-
-			if ( latest === package.version ) {
-				mainPage = Object.create( pageDetails );
-				mainPage.name = package.name;
-				mainPage.draft = true;
-				wordpress.createPage( mainPage, package, pageDetails.meta, this.parallel() );
-			} else {
-				wordpress.getPageId( package.name, this.parallel() );
-			}
-		},
-
-		function( error, versions, latest, pageDetails, mainPageId ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			this.parallel()( null, versions );
-			this.parallel()( null, latest );
-
 			pluginsDb.getMeta( package.name, this.parallel() );
+			wordpress.authenticatedCall( "jq-pjc.getPostForPlugin", package.name, this.parallel() );
+		},
+
+		function updateMainPage( error, pageDetails, repoMeta, existingPage ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			this.parallel()( null, pageDetails );
+			var versions = getVersions( existingPage ),
+				mainPageCallback = this.parallel(),
+				existingCustomFields = existingPage && existingPage.customFields ?
+					existingPage.customFields : [],
+				mainPage = Object.create( pageDetails );
+
+			mainPage.name = package.name;
+			mainPage.customFields = mainPage.customFields.concat([
+				{ key: "versions", value: JSON.stringify( versions.listed ) },
+				{ key: "latest", value: versions.latest },
+				{ key: "watchers", value: repoMeta.watchers },
+				{ key: "forks", value: repoMeta.forks }
+			]);
+			mainPage.customFields = mergeCustomFields( existingCustomFields, mainPage.customFields );
+
+			if ( !existingPage ) {
+				wordpress.newPost( mainPage, mainPageCallback );
+			} else {
+				wordpres.editPost( existingPage.id, mainPage, function( error ) {
+					if ( error ) {
+						return mainPageCallback( error );
+					}
+
+					mainPageCallback( null, existingPage.id );
+				});
+			}
+		},
+
+		function createVersionPage( error, pageDetails, mainPageId ) {
+			if ( error ) {
+				return fn( error );
+			}
 
 			pageDetails.name = package.version;
 			pageDetails.parent = mainPageId;
-			wordpress.createPage( pageDetails, package, pageDetails.meta, this.parallel() );
+			wordpress.newPost( pageDetails, this.parallel() );
 		},
 
-		function( error, versions, latest, meta ) {
+		function( error, versions, latest ) {
 			if ( error ) {
 				return fn( error );
 			}
 
-			wordpress.setVersions( package.name, versions, latest, this.parallel() );
-			wordpress.setMeta( package.name, meta, this.parallel() );
-			wordpress.publish( package.name, this.parallel() );
-		},
-
-		function( error ) {
-			if ( error ) {
-				return fn( error );
-			}
-
-			wordpress.flush( this );
-		},
-
-		function( error ) {
 			logger.log( "Added " + package.name + " v" + package.version + " to WordPress" );
-			fn( error );
+			fn( null );
 		}
 	);
 };
@@ -231,6 +261,5 @@ function processNextAction( actionId, fn ) {
 }
 
 processActions(function( error ) {
-	wordpress.end();
 	logger.error( "Error updating WordPress: " + error.stack );
 });
