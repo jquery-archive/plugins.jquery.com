@@ -38,6 +38,12 @@ actions.addRelease = function( data, fn ) {
 					title: package.title,
 					content: package.description,
 					date: date,
+					termNames: {
+						// TODO: Should we use a custom taxonomy name?
+						post_tag: package.keywords.map(function( keyword ) {
+							return keyword.toLowerCase();
+						})
+					},
 					customFields: [
 						{ key: "download_url", value: repo.downloadUrl( tag ) },
 						{ key: "repo_url", value: repo.siteUrl },
