@@ -108,6 +108,7 @@ plugin, as it's listed on the jQuery Plugins Site.
 
 Put keywords in it. It's an array of strings. This helps people
 discover your plugin as it's listed on the jQuery Plugins Site.
+Keywords may only contain letters, numbers, hyphens, and dots.
 
 ## <a name="field-homepage">homepage</a>
 

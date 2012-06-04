@@ -153,9 +153,10 @@ extend( Repo.prototype, {
 				errors.push( "Invalid data type for keywords; must be an array." );
 			} else {
 				package.keywords.forEach(function( keyword, i ) {
-					// TODO: any character restrictions on keywords?
 					if ( typeof keyword !== "string" ) {
 						errors.push( "Invalid data type for keywords[" + i + "]; must be a string." );
+					} else if ( !(/^[a-zA-Z0-9\.\-]+$/).test( keyword ) ) {
+						errors.push( "Invalid characters for keyword: " + keyword + "." );
 					}
 				});
 			}
