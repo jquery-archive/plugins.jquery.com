@@ -54,11 +54,12 @@ extend( Repo.prototype, {
 
 		/** required fields **/
 
-		// TODO: verify URL-safe characters
 		if ( !package.name ) {
 			errors.push( "Missing required field: name." );
 		} else if ( typeof package.name !== "string" ) {
 			errors.push( "Invalid data type for name; must be a string." );
+		} else if ( !(/^[a-zA-Z0-9_\.\-]+$/).test( package.name ) ) {
+			errors.push( "Name contained invalid characters." );
 		} else {
 			if ( prefix ) {
 				if ( package.name.indexOf( prefix ) !== 0 ) {
