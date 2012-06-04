@@ -136,21 +136,12 @@ var pluginsDb = module.exports = {
 		});
 	}),
 
-	_reset: function( fn ) {
-		var fs = require( "fs" ),
-			Step = require( "step" );
+	_setup: function( fn ) {
+		var Step = require( "step" );
 
 		Step(
 			function() {
-				fs.unlink( config.pluginsDb, this );
-			},
-
-			function( error ) {
-				if ( !error || error.code === "ENOENT" ) {
-					return connect( this );
-				}
-
-				fn( error );
+				connect( this );
 			},
 
 			function( error ) {

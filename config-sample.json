@@ -6,11 +6,4 @@
 		"user": "admin",
 		"password": "secret"
 	}
-
-	"dbHost": "localhost",
-	"dbPort": 3306,
-	"dbName": "mysql",
-	"dbUser": "mysql",
-	"dbPassword": "secret",
-	"siteId": null
 }

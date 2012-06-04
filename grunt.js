@@ -1,0 +1,115 @@
+var config = require( "./src/config" );
+
+module.exports = function( grunt ) {
+
+grunt.loadNpmTasks( "grunt-wordpress" );
+
+grunt.initConfig({
+	lint: {
+		grunt: "grunt.js"
+		// src: "src/**"
+	},
+
+	wordpress: config.wordpress
+});
+
+// We only want to sync the documentation, so we override wordpress-get-postpaths
+// to only find pages. This ensures that we don't delete all of the plugin posts.
+grunt.registerHelper( "wordpress-get-postpaths", function( fn ) {
+	var client = grunt.helper( "wordpress-client" );
+	grunt.verbose.write( "Getting post paths from WordPress..." );
+	client.call( "gw.getPostPaths", "page", function( error, postPaths ) {
+		if ( error ) {
+			grunt.verbose.error();
+			return fn( error );
+		}
+
+		grunt.verbose.ok();
+		grunt.verbose.writeln();
+		fn( null, postPaths );
+	});
+});
+
+grunt.registerTask( "docs", function() {
+	var done = this.async();
+	grunt.helper( "wordpress-sync-posts", "site-content/", function( error ) {
+		if ( error ) {
+			done( false );
+		}
+
+		done();
+	});
+});
+
+grunt.registerTask( "clean-all", function() {
+	var rimraf = require( "rimraf" );
+
+	// clean repo checkouts
+	rimraf.sync( config.repoDir );
+
+	// clean pluginsDb
+	rimraf.sync( config.pluginsDb );
+	rimraf.sync( "last-action" );
+
+	// clean retrydb
+	rimraf.sync( "retry.db" );
+});
+
+grunt.registerTask( "clean", function() {
+	var rimraf = require( "rimraf" );
+
+	rimraf.sync( "last-action" );
+	rimraf.sync( "retry.db" );
+});
+
+grunt.registerTask( "setup-wordpress", function() {
+	// TODO: setup post-receive hook
+
+	grunt.task.run( "docs" );
+});
+
+grunt.registerTask( "setup-pluginsdb", function() {
+	var done = this.async();
+	require( "./src/pluginsdb" )._setup(function( error ) {
+		if ( error ) {
+			return done( false );
+		}
+
+		done();
+	});
+});
+
+grunt.registerTask( "setup-retrydb", function() {
+	var done = this.async();
+	require( "./src/retrydb" )._setup(function( error ) {
+		if ( error ) {
+			return done( false );
+		}
+
+		done();
+	});
+});
+
+grunt.registerTask( "restore-repos", function() {
+	var service = require( "./src/service" ),
+		pluginsDb = require( "./src/pluginsdb" ),
+		done = this.async();
+
+	pluginsDb.getAllRepos(function( error, repos ) {
+		grunt.utils.async.mapSeries( repos, function( repo, fn ) {
+			service.getRepoById( repo ).restore( fn );
+		}, function( error ) {
+			if ( error ) {
+				return done( false );
+			}
+
+			done();
+		});
+	});
+});
+
+grunt.registerTask( "default", "lint" );
+grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb setup-wordpress" );
+grunt.registerTask( "restore", "clean setup-retrydb docs restore-repos" );
+
+};

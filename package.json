@@ -8,16 +8,16 @@
     "type": "git",
     "url": "git://github.com/jquery/plugins.jquery.com.git"
   },
-  "main": "./src/main.js",
   "dependencies": {
     "mkdirp": "0.2.1",
-    "mysql": "0.9.5",
     "semver": "1.0.12",
     "sqlite3": "2.1.1",
     "step": "0.0.5",
     "rimraf": "1.0.9",
     "node-syslog": "1.1.1",
-    "wordpress": "0.1.1"
+    "wordpress": "0.1.1",
+    "grunt": "0.3.9",
+    "grunt-wordpress": "0.1.1"
   },
   "engines": {
     "node": "0.6.5"

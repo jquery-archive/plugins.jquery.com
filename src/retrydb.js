@@ -80,21 +80,12 @@ module.exports = {
 		db.run( "DELETE FROM retry WHERE retry = ?", [ retry ], fn );
 	}),
 
-	_reset: function( fn ) {
-		var fs = require( "fs" ),
-			Step = require( "step" );
+	_setup: function( fn ) {
+		var Step = require( "step" );
 
 		Step(
-			function() {
-				fs.unlink( "retry.db", this );
-			},
-
 			function( error ) {
-				if ( !error || error.code === "ENOENT" ) {
-					return connect( this );
-				}
-
-				fn( error );
+				connect( this );
 			},
 
 			function( error ) {
