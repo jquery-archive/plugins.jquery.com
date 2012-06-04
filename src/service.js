@@ -136,7 +136,6 @@ extend( Repo.prototype, {
 				errors.push( "Missing required dependency: jquery." );
 			}
 			Object.keys( package.jquery.dependencies ).forEach(function( dependency ) {
-				// TODO: validate name
 				if ( !semver.validRange( package.jquery.dependencies[ dependency ] ) ) {
 					errors.push( "Invalid version range for dependency: " + dependency + "." );
 				}
