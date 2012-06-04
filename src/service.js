@@ -21,6 +21,10 @@ function isUrl( str ) {
 	return true;
 }
 
+function isEmail( str ) {
+	return (/^[a-zA-Z0-9.!#$%&'*+\/=?\^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/).test( str );
+}
+
 // package.json
 extend( Repo.prototype, {
 	getPackageJson: function( version, file, fn ) {
@@ -101,9 +105,13 @@ extend( Repo.prototype, {
 			if ( typeof package.author.name !== "string" ) {
 				errors.push( "Invalid data type for author.name; must be a string." );
 			}
-			// TODO: verify email address format
-			if ( "email" in package.author && typeof package.author.email !== "string" ) {
-				errors.push( "Invalid data type for author.email; must be a string." );
+
+			if ( "email" in package.author ) {
+				if ( typeof package.author.email !== "string" ) {
+					errors.push( "Invalid data type for author.email; must be a string." );
+				} else if ( !isEmail( package.author.email ) ) {
+					errors.push( "Invalid value for author.email." );
+				}
 			}
 
 			if ( "url" in package.author ) {
@@ -196,9 +204,13 @@ extend( Repo.prototype, {
 					if ( typeof maintainer.name !== "string" ) {
 						errors.push( "Invalid data type for maintainers[" + i + "].name; must be a string." );
 					}
-					// TODO: verify email address format
-					if ( "email" in maintainer && typeof maintainer.email !== "string" ) {
-						errors.push( "Invalid data type for maintainers[" + i + "].email; must be a string." );
+
+					if ( "email" in maintainer ) {
+						if ( typeof maintainer.email !== "string" ) {
+							errors.push( "Invalid data type for maintainers[" + i + "].email; must be a string." );
+						} else if ( !isEmail( maintainer.email ) ) {
+							errors.push( "Invalid value for maintainers[" + i + "].email." );
+						}
 					}
 
 					if ( "url" in maintainer ) {
