@@ -127,15 +127,15 @@ extend( Repo.prototype, {
 			});
 		}
 
-		if ( !package.dependencies ) {
-			errors.push( "Missing required field: dependencies." );
+		if ( !package.jquery || !package.jquery.dependencies ) {
+			errors.push( "Missing required field: jquery.dependencies." );
 		} else {
-			if ( !package.dependencies.jquery ) {
+			if ( !package.jquery.dependencies.jquery ) {
 				errors.push( "Missing required dependency: jquery." );
 			}
-			Object.keys( package.dependencies ).forEach(function( dependency ) {
+			Object.keys( package.jquery.dependencies ).forEach(function( dependency ) {
 				// TODO: validate name
-				if ( !semver.validRange( package.dependencies[ dependency ] ) ) {
+				if ( !semver.validRange( package.jquery.dependencies[ dependency ] ) ) {
 					errors.push( "Invalid version range for dependency: " + dependency + "." );
 				}
 			});
@@ -168,19 +168,21 @@ extend( Repo.prototype, {
 			}
 		}
 
-		if ( "docs" in package ) {
-			if ( typeof package.docs !== "string" ) {
-				errors.push( "Invalid data type for docs; must be a string." );
-			} else if ( !isUrl( package.docs ) ) {
-				errors.push( "Invalid value for docs." );
+		if ( package.jquery ) {
+			if ( "docs" in package ) {
+				if ( typeof package.jquery.docs !== "string" ) {
+					errors.push( "Invalid data type for jquery.docs; must be a string." );
+				} else if ( !isUrl( package.jquery.docs ) ) {
+					errors.push( "Invalid value for jquery.docs." );
+				}
 			}
-		}
 
-		if ( "demo" in package ) {
-			if ( typeof package.demo !== "string" ) {
-				errors.push( "Invalid data type for demo; must be a string." );
-			} else if ( !isUrl( package.demo ) ) {
-				errors.push( "Invalid value for demo." );
+			if ( "demo" in package ) {
+				if ( typeof package.jquery.demo !== "string" ) {
+					errors.push( "Invalid data type for jquery.demo; must be a string." );
+				} else if ( !isUrl( package.jquery.demo ) ) {
+					errors.push( "Invalid value for jquery.demo." );
+				}
 			}
 		}
 
@@ -203,18 +205,6 @@ extend( Repo.prototype, {
 						} else if ( !isUrl( maintainer.url ) ) {
 							errors.push( "Invalid value for maintainers[" + i + "].url." );
 						}
-					}
-				});
-			}
-		}
-
-		if ( "files" in package ) {
-			if ( !Array.isArray( package.files ) ) {
-				errors.push( "Invalid data type for files; must be an array." );
-			} else {
-				package.files.forEach(function( file, i ) {
-					if ( typeof file !== "string" ) {
-						errors.push( "Invalid data type for files[" + i + "]; must be a string." );
 					}
 				});
 			}

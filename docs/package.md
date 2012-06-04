@@ -15,17 +15,16 @@ file. It must be actual JSON, not just a JavaScript object literal.
 * <a href="#field-title">title</a>
 * <a href="#field-author">author</a>
 * <a href="#field-licenses">licenses</a>
-* <a href="#field-dependencies">dependencies</a>
+* <a href="#field-jquery-dependencies">jquery.dependencies</a>
 
 ## Optional Fields
 
 * <a href="#field-description">description</a>
 * <a href="#field-keywords">keywords</a>
 * <a href="#field-homepage">homepage</a>
-* <a href="#field-docs">docs</a>
-* <a href="#field-demo">demo</a>
+* <a href="#field-jquery-docs">jquery.docs</a>
+* <a href="#field-jquery-demo">jquery.demo</a>
 * <a href="#field-maintainers">maintainers</a>
-* <a href="#field-files">files</a>
 
 ## <a name="field-name">name</a>
 
@@ -84,7 +83,7 @@ a url property linking to the actual text and an optional "type" property specif
        }
     ]
 
-## <a name="field-dependencies">dependencies</a>
+## <a name="field-jquery-dependencies">jquery.dependencies</a>
 
 Dependencies are specified with a simple hash of package name to version
 range. The version range is EITHER a string which has one or more
@@ -114,11 +113,11 @@ discover your plugin as it's listed on the jQuery Plugins Site.
 
 The url to the plugin homepage.
 
-## <a name="field-docs">docs</a>
+## <a name="field-jquery-docs">jquery.docs</a>
 
 The url to the plugin documentation.
 
-## <a name="field-demo">demo</a>
+## <a name="field-jquery-demo">jquery.demo</a>
 
 The url to the plugin demo or demos.
 
@@ -127,14 +126,6 @@ The url to the plugin demo or demos.
 An array of people.
 
 See [People Fields](#people-fields).
-
-## <a name="field-files">files</a>
-
-The "files" field is an array of files that make up your plugin. This should
-be a file path relative to the root of your plugin folder.
-
-If you name a folder in the array, then it will also include the files
-inside that folder.
 
 # <a name="people-fields">People Fields</a>
 
@@ -236,8 +227,10 @@ digits after the first "x" are ignored.
             "url": "GPL-LICENSE.txt"
         }
     ],
-    "dependencies": {
-        "jquery": "1"
+    "jquery": {
+        "dependencies": {
+            "jquery": "1"
+        }
     },
     "description": "The main purpose of this plugin is to animate color properties on elements using jQuery's .animate()",
     "keywords": [
@@ -252,9 +245,6 @@ digits after the first "x" are ignored.
             "name": "Corey Frang",
             "url": "https://github.com/gnarf37"
         }
-    ],
-    "files": [
-        "jquery.color.js"
     ]
 }
 ```
