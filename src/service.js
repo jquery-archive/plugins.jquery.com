@@ -17,7 +17,7 @@ function Repo() {
 }
 
 function isUrl( str ) {
-	// TOOD: URL validation
+	// TODO: URL validation
 	return true;
 }
 
