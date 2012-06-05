@@ -75,7 +75,8 @@ extend( Repo.prototype, {
 				} else {
 					Object.keys( suites ).forEach(function( repoId ) {
 						var prefix = suites[ repoId ];
-						if ( package.name.indexOf( prefix ) === 0 ) {
+						if ( package.name.indexOf( prefix ) === 0 &&
+								!(/\./).test( package.name.substr( prefix.length ) ) ) {
 							errors.push( "Name must not start with '" + prefix + "'." );
 						}
 					});
