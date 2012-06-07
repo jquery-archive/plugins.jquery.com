@@ -33,13 +33,12 @@ actions.addRelease = function( data, fn ) {
 				}
 
 				fn( null, {
-					type: "page",
+					type: "jquery_plugin",
 					status: "publish",
 					title: package.title,
 					content: package.description,
 					date: date,
 					termNames: {
-						// TODO: Should we use a custom taxonomy name?
 						post_tag: package.keywords.map(function( keyword ) {
 							return keyword.toLowerCase();
 						})
