@@ -59,7 +59,7 @@ From http://dev.plugins.jquery.com/wordpress/wp-admin/
 1. Update Site Address
 
  * Select Settings -> General
- * Set Site Address to http://plugins.jquery.com.local
+ * Set Site Address to http://dev.plugins.jquery.com
 
 2. Activate the plugins-jquery-com theme
 
@@ -93,8 +93,8 @@ From http://dev.plugins.jquery.com/wordpress/wp-admin/
 6. `grunt setup`
     * This is a one time setup.
 
-7. `node src/update.js`
-    * This expects a post-receive hook as stdin. You can use `{"repository":{"url":"http://github.com/scottgonzalez/temp-jquery-foo","watchers":3,"forks":25}}` for testing.
+7. `node scripts/update-server.js`
+    * This starts an HTTP server on port 8001, which expects post-receive hooks as requests.
 
-8. `node src/wp-update.js`
-    * This is intended to run as a long running processes, monitored by a system such as monit.
+8. `node scripts/wordpress-update.js`
+    * This is a long running process which keeps WordPress in sync with the plugins DB.

@@ -1,10 +1,10 @@
 var fs = require( "fs" ),
 	semver = require( "semver" ),
 	Step = require( "step" ),
-	wordpress = require( "./wordpress" ),
-	pluginsDb = require( "./pluginsdb" ),
-	service = require( "./service" ),
-	logger = require( "./logger" );
+	wordpress = require( "../lib/wordpress" ),
+	pluginsDb = require( "../lib/pluginsdb" ),
+	service = require( "../lib/service" ),
+	logger = require( "../lib/logger" );
 
 process.on( "uncaughtException", function( error ) {
 	logger.error( "Uncaught exception: " + error.stack );

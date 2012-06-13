@@ -1,4 +1,4 @@
-var config = require( "./src/config" );
+var config = require( "./lib/config" );
 
 module.exports = function( grunt ) {
 
@@ -7,7 +7,7 @@ grunt.loadNpmTasks( "grunt-wordpress" );
 grunt.initConfig({
 	lint: {
 		grunt: "grunt.js"
-		// src: "src/**"
+		// src: [ "lib/**", "scripts/**" ]
 	},
 
 	wordpress: config.wordpress
@@ -70,7 +70,7 @@ grunt.registerTask( "setup-wordpress", function() {
 
 grunt.registerTask( "setup-pluginsdb", function() {
 	var done = this.async();
-	require( "./src/pluginsdb" )._setup(function( error ) {
+	require( "./lib/pluginsdb" )._setup(function( error ) {
 		if ( error ) {
 			return done( false );
 		}
@@ -81,7 +81,7 @@ grunt.registerTask( "setup-pluginsdb", function() {
 
 grunt.registerTask( "setup-retrydb", function() {
 	var done = this.async();
-	require( "./src/retrydb" )._setup(function( error ) {
+	require( "./lib/retrydb" )._setup(function( error ) {
 		if ( error ) {
 			return done( false );
 		}
@@ -91,8 +91,8 @@ grunt.registerTask( "setup-retrydb", function() {
 });
 
 grunt.registerTask( "restore-repos", function() {
-	var service = require( "./src/service" ),
-		pluginsDb = require( "./src/pluginsdb" ),
+	var service = require( "./lib/service" ),
+		pluginsDb = require( "./lib/pluginsdb" ),
 		done = this.async();
 
 	pluginsDb.getAllRepos(function( error, repos ) {
