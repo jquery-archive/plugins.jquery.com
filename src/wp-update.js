@@ -109,7 +109,7 @@ actions.addRelease = function( data, fn ) {
 		function getPageData() {
 			getPageDetails( this.parallel() );
 			pluginsDb.getMeta( package.name, this.parallel() );
-			wordpress.authenticatedCall( "jq-pjc.getPostForPlugin", package.name, this.parallel() );
+			wordpress.getPostForPlugin( package.name, this.parallel() );
 		},
 
 		function updateMainPage( error, pageDetails, repoMeta, existingPage ) {
@@ -133,10 +133,10 @@ actions.addRelease = function( data, fn ) {
 			]);
 			mainPage.customFields = mergeCustomFields( existingCustomFields, mainPage.customFields );
 
-			if ( !existingPage ) {
+			if ( !existingPage.id ) {
 				wordpress.newPost( mainPage, mainPageCallback );
 			} else {
-				wordpres.editPost( existingPage.id, mainPage, function( error ) {
+				wordpress.editPost( existingPage.id, mainPage, function( error ) {
 					if ( error ) {
 						return mainPageCallback( error );
 					}
