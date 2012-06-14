@@ -1,8 +1,8 @@
 var Step = require( "step" ),
-	hook = require( "./hook" ),
-	service = require( "./service" ),
-	retry = require( "./retrydb" ),
-	logger = require( "./logger" );
+	hook = require( "../lib/hook" ),
+	service = require( "../lib/service" ),
+	retry = require( "../lib/retrydb" ),
+	logger = require( "../lib/logger" );
 
 process.on( "uncaughtException", function( error ) {
 	logger.error( "Uncaught exception: " + error.stack );
