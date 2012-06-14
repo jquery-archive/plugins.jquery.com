@@ -44,7 +44,8 @@ actions.addRelease = function( data, fn ) {
 						})
 					},
 					customFields: [
-						{ key: "download_url", value: repo.downloadUrl( tag ) },
+						{ key: "download_url", value: package.jquery && package.jquery.download ||
+							repo.downloadUrl( tag ) },
 						{ key: "repo_url", value: repo.siteUrl },
 						{ key: "package_json", value: JSON.stringify( package ) }
 					]
