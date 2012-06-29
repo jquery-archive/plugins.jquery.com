@@ -1,10 +1,12 @@
-Specification of the jQuery Plugins Site package.json
-=====================================================
+Specification of the jQuery Plugins Site jquery.json
+====================================================
 
-# LIVING SPEC (heavily inspired by that of npm. Thanks isaacs)
+# LIVING SPEC (heavily inspired by that of npm, thanks isaacs)
 
-This document is all you need to know about what's required in your package.json
-file. It must be actual JSON, not just a JavaScript object literal.
+This document is all you need to know about what's required in your jquery.json
+file(s). It must be actual JSON, not just a JavaScript object literal.
+
+**NOTE: While we refer to the file as jquery.json, the file name must actually be {name}.jquery.json.**
 
 # Fields
 
@@ -15,44 +17,41 @@ file. It must be actual JSON, not just a JavaScript object literal.
 * <a href="#field-title">title</a>
 * <a href="#field-author">author</a>
 * <a href="#field-licenses">licenses</a>
-* <a href="#field-jquery-dependencies">jquery.dependencies</a>
+* <a href="#field-dependencies">dependencies</a>
 
 ## Optional Fields
 
 * <a href="#field-description">description</a>
 * <a href="#field-keywords">keywords</a>
 * <a href="#field-homepage">homepage</a>
-* <a href="#field-jquery-docs">jquery.docs</a>
-* <a href="#field-jquery-demo">jquery.demo</a>
-* <a href="#field-jquery-download">jquery.download</a>
+* <a href="#field-docs">docs</a>
+* <a href="#field-demo">demo</a>
+* <a href="#field-download">download</a>
 * <a href="#field-maintainers">maintainers</a>
 
 ## <a name="field-name">name</a>
 
-The *most* important things in your package.json are the name and version fields.
+The *most* important things in your jquery.json are the name and version fields.
 The name and version together form an identifier that is assumed
 to be completely unique. Changes to the plugin should come along with
 changes to the version.
 
 The name is what your thing is called. Some tips:
 
-* Don't put "js" in the name. It's assumed that it's js, since you're
-  writing a package.json file.
-* Do put "jquery" in the name. This may seem like the opposite advice from the previous
-  tip, but this is important for projects loading jQuery plugins and non-jQuery plugins
-  through a module loader.
+* Don't put "js" or "jquery" in the name. It's assumed that it's js and jquery, since
+  you're writing a jquery.json file.
 * The name ends up being part of a URL. Any name with non-url-safe characters will
   be rejected. The jQuery Plugins Site is UTF-8.
 * The name should be short, but also reasonably descriptive.
 * You may want to check [the plugins site](http://plugins.jquery.com/)
   to see if there's something by that name already, before you get too attached to it.
 * If you have a plugin with the same name as a plugin already in the jQuery Plugins
-  Site, either consider renaming your plugin or namespace it. For example, jQuery UI
-  plugins are listed with the "jquery.ui." prefix (e.g. jquery.ui.dialog, jquery.ui.autocomplete).
+  Site, either consider renaming your plugin or namespacing it. For example, jQuery UI
+  plugins are listed with the "ui." prefix (e.g. ui.dialog, ui.autocomplete).
 
 ## <a name="field-version">version</a>
 
-The *most* important things in your package.json are the name and version fields.
+The *most* important things in your jquery.json are the name and version fields.
 The name and version together form an identifier that is assumed
 to be completely unique. Changes to the plugin should come along with
 changes to the version. Version number must be a valid semantic version number
@@ -84,7 +83,7 @@ a url property linking to the actual text and an optional "type" property specif
        }
     ]
 
-## <a name="field-jquery-dependencies">jquery.dependencies</a>
+## <a name="field-dependencies">dependencies</a>
 
 Dependencies are specified with a simple hash of package name to version
 range. The version range is EITHER a string which has one or more
@@ -115,15 +114,15 @@ Keywords may only contain letters, numbers, hyphens, and dots.
 
 The url to the plugin homepage.
 
-## <a name="field-jquery-docs">jquery.docs</a>
+## <a name="field-docs">docs</a>
 
 The url to the plugin documentation.
 
-## <a name="field-jquery-demo">jquery.demo</a>
+## <a name="field-demo">demo</a>
 
 The url to the plugin demo or demos.
 
-## <a name="field-jquery-download">jquery.download</a>
+## <a name="field-download">download</a>
 
 The url to download the plugin. A download URL will be automatically generated
 based on the tag in GitHub, but you can specify a custom URL if you'd prefer
@@ -214,12 +213,14 @@ The following are equivalent:
 You may not supply a comparator with a version containing an x. Any
 digits after the first "x" are ignored.
 
-## <a href="sample">Sample package.json</a>
+## <a href="sample">Sample jquery.json</a>
+
+**color.jquery.json**
 
 ```json
 {
-    "name": "jquery.color",
-    "version": "2.0.0b1",
+    "name": "color",
+    "version": "2.0.0-beta.1",
     "title": "jQuery.Color()",
     "author": {
         "name": "John Resig",
@@ -228,11 +229,11 @@ digits after the first "x" are ignored.
     "licenses": [
         {
             "type": "MIT",
-            "url": "MIT-LICENSE.txt"
+            "url": "https://github.com/jquery/jquery-color/raw/2.0.0-beta.1/MIT-LICENSE.txt"
         },
         {
             "type": "GPLv2",
-            "url": "GPL-LICENSE.txt"
+            "url": "https://github.com/jquery/jquery-color/raw/2.0.0-beta.1/GPL-LICENSE.txt"
         }
     ],
     "jquery": {
