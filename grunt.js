@@ -6,8 +6,12 @@ grunt.loadNpmTasks( "grunt-wordpress" );
 
 grunt.initConfig({
 	lint: {
-		grunt: "grunt.js"
-		// src: [ "lib/**", "scripts/**" ]
+		grunt: "grunt.js",
+		src: [ "lib/**", "scripts/**" ]
+	},
+
+	test: {
+		files: [ "test/**/*.js" ]
 	},
 
 	wordpress: config.wordpress

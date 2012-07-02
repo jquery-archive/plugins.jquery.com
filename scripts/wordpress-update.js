@@ -11,14 +11,14 @@ process.on( "uncaughtException", function( error ) {
 });
 
 function isStable( version ) {
-	return /^\d+\.\d+\.\d+$/.test( version );
+	return (/^\d+\.\d+\.\d+$/).test( version );
 }
 
 var actions = {};
 
 actions.addRelease = function( data, fn ) {
 	var repo = service.getRepoById( data.repo ),
-		package = data.package,
+		manifest = data.manifest,
 		tag = data.tag;
 
 	function getPageDetails( fn ) {
@@ -35,19 +35,18 @@ actions.addRelease = function( data, fn ) {
 				fn( null, {
 					type: "jquery_plugin",
 					status: "publish",
-					title: package.title,
-					content: package.description,
+					title: manifest.title,
+					content: manifest.description,
 					date: date,
 					termNames: {
-						post_tag: package.keywords.map(function( keyword ) {
+						post_tag: manifest.keywords.map(function( keyword ) {
 							return keyword.toLowerCase();
 						})
 					},
 					customFields: [
-						{ key: "download_url", value: package.jquery && package.jquery.download ||
-							repo.downloadUrl( tag ) },
+						{ key: "download_url", value: manifest.download || repo.downloadUrl( tag ) },
 						{ key: "repo_url", value: repo.siteUrl },
-						{ key: "package_json", value: JSON.stringify( package ) }
+						{ key: "manifest", value: JSON.stringify( manifest ) }
 					]
 				});
 			}
@@ -80,7 +79,7 @@ actions.addRelease = function( data, fn ) {
 		versions = versions.length ? JSON.parse( versions[ 0 ].value ) : [];
 
 		listed = versions
-			.concat( package.version )
+			.concat( manifest.version )
 			.sort( semver.compare )
 			.reverse()
 			.filter(function( version ) {
@@ -109,8 +108,8 @@ actions.addRelease = function( data, fn ) {
 	Step(
 		function getPageData() {
 			getPageDetails( this.parallel() );
-			pluginsDb.getMeta( package.name, this.parallel() );
-			wordpress.getPostForPlugin( package.name, this.parallel() );
+			pluginsDb.getMeta( manifest.name, this.parallel() );
+			wordpress.getPostForPlugin( manifest.name, this.parallel() );
 		},
 
 		function updateMainPage( error, pageDetails, repoMeta, existingPage ) {
@@ -125,7 +124,7 @@ actions.addRelease = function( data, fn ) {
 					existingPage.customFields : [],
 				mainPage = Object.create( pageDetails );
 
-			mainPage.name = package.name;
+			mainPage.name = manifest.name;
 			mainPage.customFields = mainPage.customFields.concat([
 				{ key: "versions", value: JSON.stringify( versions.listed ) },
 				{ key: "latest", value: versions.latest },
@@ -152,7 +151,7 @@ actions.addRelease = function( data, fn ) {
 				return fn( error );
 			}
 
-			pageDetails.name = package.version;
+			pageDetails.name = manifest.version;
 			pageDetails.parent = mainPageId;
 			wordpress.newPost( pageDetails, this.parallel() );
 		},
@@ -162,7 +161,7 @@ actions.addRelease = function( data, fn ) {
 				return fn( error );
 			}
 
-			logger.log( "Added " + package.name + " v" + package.version + " to WordPress" );
+			logger.log( "Added " + manifest.name + " v" + manifest.version + " to WordPress" );
 			fn( null );
 		}
 	);

@@ -1,12 +1,12 @@
-Specification of the jQuery Plugins Site jquery.json
-====================================================
+Specification of the jQuery Plugins Site Manifest File
+======================================================
 
 # LIVING SPEC (heavily inspired by that of npm, thanks isaacs)
 
 This document is all you need to know about what's required in your jquery.json
-file(s). It must be actual JSON, not just a JavaScript object literal.
+manifest file(s). It must be actual JSON, not just a JavaScript object literal.
 
-**NOTE: While we refer to the file as jquery.json, the file name must actually be {name}.jquery.json.**
+**NOTE: Manifest file names must contain the plugin name, e.g. foo.jquery.json.**
 
 # Fields
 
@@ -31,7 +31,7 @@ file(s). It must be actual JSON, not just a JavaScript object literal.
 
 ## <a name="field-name">name</a>
 
-The *most* important things in your jquery.json are the name and version fields.
+The *most* important things in your manifest file are the name and version fields.
 The name and version together form an identifier that is assumed
 to be completely unique. Changes to the plugin should come along with
 changes to the version.
@@ -39,7 +39,7 @@ changes to the version.
 The name is what your thing is called. Some tips:
 
 * Don't put "js" or "jquery" in the name. It's assumed that it's js and jquery, since
-  you're writing a jquery.json file.
+  you're writing a jquery.json manifest file.
 * The name ends up being part of a URL. Any name with non-url-safe characters will
   be rejected. The jQuery Plugins Site is UTF-8.
 * The name should be short, but also reasonably descriptive.
@@ -51,7 +51,7 @@ The name is what your thing is called. Some tips:
 
 ## <a name="field-version">version</a>
 
-The *most* important things in your jquery.json are the name and version fields.
+The *most* important things in your manifest file are the name and version fields.
 The name and version together form an identifier that is assumed
 to be completely unique. Changes to the plugin should come along with
 changes to the version. Version number must be a valid semantic version number
@@ -213,7 +213,7 @@ The following are equivalent:
 You may not supply a comparator with a version containing an x. Any
 digits after the first "x" are ignored.
 
-## <a href="sample">Sample jquery.json</a>
+## <a href="sample">Sample manifest</a>
 
 **color.jquery.json**
 
@@ -236,10 +236,8 @@ digits after the first "x" are ignored.
             "url": "https://github.com/jquery/jquery-color/raw/2.0.0-beta.1/GPL-LICENSE.txt"
         }
     ],
-    "jquery": {
-        "dependencies": {
-            "jquery": "1"
-        }
+    "dependencies": {
+        "jquery": ">=1.6"
     },
     "description": "The main purpose of this plugin is to animate color properties on elements using jQuery's .animate()",
     "keywords": [

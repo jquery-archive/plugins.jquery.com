@@ -22,12 +22,12 @@ actions.processVersions = function( repoId, fn ) {
 
 actions.processRelease = function( repoId, tag, file, fn ) {
 	var repo = service.getRepoById( repoId );
-	repo.getPackageJson( tag, file, function( error, package ) {
+	repo.getManifest( tag, file, function( error, manifest ) {
 		if ( error ) {
 			return fn( error );
 		}
 
-		hook.processRelease( repo, tag, file, package, fn );
+		hook.processRelease( repo, tag, file, manifest, fn );
 	});
 };
 
