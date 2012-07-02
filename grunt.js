@@ -112,7 +112,7 @@ grunt.registerTask( "restore-repos", function() {
 	});
 });
 
-grunt.registerTask( "default", "lint" );
+grunt.registerTask( "default", "lint test" );
 grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb setup-wordpress" );
 grunt.registerTask( "restore", "clean setup-retrydb docs restore-repos" );
 

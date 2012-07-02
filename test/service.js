@@ -227,7 +227,147 @@ var tests = {
 		fn( manifest, manifest.version, [
 			"Invalid version range for dependency: jquery."
 		]);
+	},
+
+	"description - invalid type": function( manifest, fn ) {
+		manifest.description = 5;
+		fn( manifest, manifest.version, [
+			"Invalid data type for description; must be a string."
+		]);
+	},
+
+	"keywords - invalid type": function( manifest, fn ) {
+		manifest.keywords = "jquery plugin";
+		fn( manifest, manifest.version, [
+			"Invalid data type for keywords; must be an array."
+		]);
+	},
+
+	"keywords - keyword - invalid type": function( manifest, fn ) {
+		manifest.keywords = [ "plugin", 5 ];
+		fn( manifest, manifest.version, [
+			"Invalid data type for keywords[1]; must be a string."
+		]);
+	},
+
+	"keywords - keyword - invalid characters": function( manifest, fn ) {
+		manifest.keywords = [ "jquery plugin" ];
+		fn( manifest, manifest.version, [
+			"Invalid characters for keyword: jquery plugin."
+		]);
+	},
+
+	"homepage - invalid type": function( manifest, fn ) {
+		manifest.homepage = 5;
+		fn( manifest, manifest.version, [
+			"Invalid data type for homepage; must be a string."
+		]);
+	},
+
+	// "homepage - invalid format": function( manifest, fn ) {
+	// 	manifest.homepage = "example.com";
+	// 	fn( manifest, manifest.version, [
+	// 		"Invalid value for homepage."
+	// 	]);
+	// },
+
+	"docs - invalid type": function( manifest, fn ) {
+		manifest.docs = 5;
+		fn( manifest, manifest.version, [
+			"Invalid data type for docs; must be a string."
+		]);
+	},
+
+	// "docs - invalid format": function( manifest, fn ) {
+	// 	manifest.docs = "example.com";
+	// 	fn( manifest, manifest.version, [
+	// 		"Invalid value for docs."
+	// 	]);
+	// },
+
+	"demo - invalid type": function( manifest, fn ) {
+		manifest.demo = 5;
+		fn( manifest, manifest.version, [
+			"Invalid data type for demo; must be a string."
+		]);
+	},
+
+	// "demo - invalid format": function( manifest, fn ) {
+	// 	manifest.demo = "example.com";
+	// 	fn( manifest, manifest.version, [
+	// 		"Invalid value for demo."
+	// 	]);
+	// },
+
+	"download - invalid type": function( manifest, fn ) {
+		manifest.download = 5;
+		fn( manifest, manifest.version, [
+			"Invalid data type for download; must be a string."
+		]);
+	},
+
+	// "download - invalid format": function( manifest, fn ) {
+	// 	manifest.download = "example.com";
+	// 	fn( manifest, manifest.version, [
+	// 		"Invalid value for download."
+	// 	]);
+	// },
+
+	"maintainers - invalid type": function( manifest, fn ) {
+		manifest.maintainers = "John";
+		fn( manifest, manifest.version, [
+			"Invalid data type for maintainers; must be an array."
+		]);
+	},
+
+	"maintainers - maintainer - invalid type": function( manifest, fn ) {
+		manifest.maintainers = [ "John" ];
+		fn( manifest, manifest.version, [
+			"Invalid data type for maintainers[0]; must be an object."
+		]);
+	},
+
+	"maintainers - maintainer - empty object": function( manifest, fn ) {
+		manifest.maintainers = [{}];
+		fn( manifest, manifest.version, [
+			"Missing required field: maintainers[0].name."
+		]);
+	},
+
+	"maintainers - maintainer - name - invalid type": function( manifest, fn ) {
+		manifest.maintainers = [{ name: 5 }];
+		fn( manifest, manifest.version, [
+			"Invalid data type for maintainers[0].name; must be a string."
+		]);
+	},
+
+	"maintainers - maintainer - email - invalid type": function( manifest, fn ) {
+		manifest.maintainers = [{ name: "John", email: 5 }];
+		fn( manifest, manifest.version, [
+			"Invalid data type for maintainers[0].email; must be a string."
+		]);
+	},
+
+	"manitainers - maintainer - email - invalid format": function( manifest, fn ) {
+		manifest.maintainers = [{ name: "John", email: "john at example" }];
+		fn( manifest, manifest.version, [
+			"Invalid value for maintainers[0].email."
+		]);
+	},
+
+	"maintainers - maintainer - url - invalid type": function( manifest, fn ) {
+		manifest.maintainers = [{ name: "John", url: 5 }];
+		fn( manifest, manifest.version, [
+			"Invalid data type for maintainers[0].url; must be a string."
+		]);
 	}
+
+	// "maintainers - maintainer - url - invalid format": function( manifest, fn ) {
+	// 	manifest.maintainers = [{ name: "John", url: "example.com" }];
+	// 	fn( manifest, manifest.version, [
+	// 		"Invalid value for maintainers[0].url."
+	// 	]);
+	// }
 };
 
 exports.service = {};
