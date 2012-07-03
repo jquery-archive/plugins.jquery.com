@@ -165,7 +165,6 @@ is a semver compatible version identifier.
 * `<=version`
 * `~version` See 'Tilde Version Ranges' below
 * `1.2.x` See 'X Version Ranges' below
-* `http://...` See 'URLs as Dependencies' below
 * `*` Matches any version
 * `""` (just an empty string) Same as `*`
 * `version1 - version2` Same as `>=version1 <=version2`.
