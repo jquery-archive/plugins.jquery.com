@@ -35,6 +35,7 @@ var tests = {
 			docs: "http://example.com/theplugin-docs",
 			demo: "http://example.com/theplugin-demo",
 			download: "http://example.com/theplugin-download",
+			bugs: "http://example.com/theplugin-bugs",
 			maintainers: [
 				{
 					name: "Jane Doe",
@@ -310,6 +311,20 @@ var tests = {
 	// 	manifest.download = "example.com";
 	// 	fn( manifest, manifest.version, [
 	// 		"Invalid value for download."
+	// 	]);
+	// },
+
+	"bugs - invalid type": function( manifest, fn ) {
+		manifest.bugs = 5;
+		fn( manifest, manifest.version, [
+			"Invalid data type for bugs; must be a string."
+		]);
+	},
+
+	// "bugs - invalid format": function( manifest, fn ) {
+	// 	manifest.bugs = "example.com";
+	// 	fn( manifest, manifest.version, [
+	// 		"Invalid value for bugs."
 	// 	]);
 	// },
 

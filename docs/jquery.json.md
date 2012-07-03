@@ -27,6 +27,7 @@ manifest file(s). It must be actual JSON, not just a JavaScript object literal.
 * <a href="#field-docs">docs</a>
 * <a href="#field-demo">demo</a>
 * <a href="#field-download">download</a>
+* <a href="#field-bugs">bugs</a>
 * <a href="#field-maintainers">maintainers</a>
 
 ## <a name="field-name">name</a>
@@ -127,6 +128,10 @@ The url to the plugin demo or demos.
 The url to download the plugin. A download URL will be automatically generated
 based on the tag in GitHub, but you can specify a custom URL if you'd prefer
 to send users to your own site.
+
+## <a name="field-bugs">bugs</a>
+
+The url to the bug tracker for the plugin.
 
 ## <a name="field-maintainers">maintainers</a>
 
