@@ -199,7 +199,7 @@ function processActions( fn ) {
 	);
 }
 
-function processActionsSince( actionId, fn ) {
+var processActionsSince = function( actionId, fn ) {
 	Step(
 		function() {
 			processNextAction( actionId, this );
@@ -230,7 +230,7 @@ function processActionsSince( actionId, fn ) {
 			processActionsSince( action.id, fn );
 		}
 	);
-}
+};
 
 function processNextAction( actionId, fn ) {
 	Step(
@@ -267,4 +267,11 @@ function processNextAction( actionId, fn ) {
 
 processActions(function( error ) {
 	logger.error( "Error updating WordPress: " + error.stack );
+});
+
+// Let the current action finish, then stop processing and exit
+process.on( "SIGINT", function() {
+	processActionsSince = function( actionId, fn ) {
+		fn( null );
+	};
 });

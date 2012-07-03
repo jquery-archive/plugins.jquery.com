@@ -36,7 +36,7 @@ actions.processMeta = function( repoId, fn ) {
 	hook.processMeta( repo, fn );
 };
 
-function processFailures( fn ) {
+var processFailures = function( fn ) {
 	Step(
 		function() {
 			retry.getFailure( this );
@@ -74,14 +74,21 @@ function processFailures( fn ) {
 
 		function( error ) {
 			if ( error ) {
-				console.log( error.stack );
+				return fn( error );
 			}
 
 			processFailures( fn );
 		}
 	);
-}
+};
 
 processFailures(function( error ) {
 	logger.error( "Error during retry: " + error.stack );
+});
+
+// Let the current retry finish, then stop processing and exit
+process.on( "SIGINT", function() {
+	processFailures = function( fn ) {
+		fn( null );
+	};
 });
