@@ -266,7 +266,9 @@ function processNextAction( actionId, fn ) {
 }
 
 processActions(function( error ) {
-	logger.error( "Error updating WordPress: " + error.stack );
+	if ( error ) {
+		logger.error( "Error updating WordPress: " + error.stack );
+	}
 });
 
 // Let the current action finish, then stop processing and exit

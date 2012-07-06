@@ -83,7 +83,9 @@ var processFailures = function( fn ) {
 };
 
 processFailures(function( error ) {
-	logger.error( "Error during retry: " + error.stack );
+	if ( error ) {
+		logger.error( "Error during retry: " + error.stack );
+	}
 });
 
 // Let the current retry finish, then stop processing and exit
