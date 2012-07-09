@@ -1,4 +1,5 @@
 var http = require( "http" ),
+	service = require( "../lib/service" ),
 	hook = require( "../lib/hook" ),
 	logger = require( "../lib/logger" );
 
@@ -12,18 +13,17 @@ process.on( "uncaughtException", function( error ) {
 });
 
 var server = http.createServer(function( request, response ) {
-	var json = "";
+	var data = "";
 	request.setEncoding( "utf8" );
 	request.on( "data", function( chunk ) {
-		json += chunk;
+		data += chunk;
 	});
 
 	request.on( "end", function() {
-		try {
-			json = JSON.parse( json );
-		} catch( e ) {
-			// Invalid JSON, stop processing
-			logger.error( "Invalid request: " + json );
+		var repo = service.getRepoByHook( data );
+		if ( !repo ) {
+			// Invalid data, stop processing
+			logger.error( "Invalid request: " + data );
 			response.writeHead( 400 );
 			response.end();
 			return;
@@ -34,7 +34,7 @@ var server = http.createServer(function( request, response ) {
 		response.end();
 
 		// Process the request
-		hook.processHook( json, function( error ) {
+		hook.processHook( repo, function( error ) {
 			if ( error ) {
 				logger.error( "Error processing hook: " + error.stack );
 			}
