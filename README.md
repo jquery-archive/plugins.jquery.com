@@ -25,53 +25,9 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 ### Installation
 
-#### HOSTS
-
-1. Add a `dev.plugins.jquery.com` entry in /etc/hosts
-
- * `127.0.0.1 dev.plugins.jquery.com`
-
 #### web-base-template
 
-1. Download or clone web-base-template
-
- * `git clone git://github.com/jquery/web-base-template.git`
-
-#### WordPress
-
-1. Install and run a web server (such as Apache), PHP, and MySQL.
-
-2. Follow http://codex.wordpress.org/Installing_WordPress#Famous_5-Minute_Install
-
-3. Move `wordpress/wp-config.php` to `wp-config.php` and add the following:
-
-    define( 'WP_CONTENT_DIR', dirname( ABSPATH ) . '/web-base-template' );
-    define( 'WP_CONTENT_URL', 'http://dev.plugins.jquery.com/web-base-template' );
-
-4. Copy `wordpress/index.php` to `index.php` and add update the require at the bottom to be:
-
-    require('./wordpress/wp-blog-header.php');
-
-#### WordPress config
-
-From http://dev.plugins.jquery.com/wordpress/wp-admin/
-
-1. Update Site Address
-
- * Select Settings -> General
- * Set Site Address to http://dev.plugins.jquery.com
-
-2. Activate the plugins-jquery-com theme
-
- * Select Appearance -> Themes
- * Under plugins-jquery-com, select 'Activate'
-
-3. Set Custom Structure for Permalinks
-
- * Select Settings -> Permalinks
- * Select Custom Structure
- * Enter `/%postname%/`
- * Click Save Changes
+1. Follow the installation steps for [web-base-tempalate](https://github.com/jquery/web-base-template).
 
 #### Install node >=0.6.4
 
@@ -91,10 +47,7 @@ From http://dev.plugins.jquery.com/wordpress/wp-admin/
     * Set `wordpress` properties to contain a valid username and password for the WordPress site.
 
 6. `grunt setup`
-    * This is a one time setup.
 
-7. `node scripts/update-server.js`
-    * This starts an HTTP server on port 8001, which expects post-receive hooks as requests.
+### Running the site
 
-8. `node scripts/wordpress-update.js`
-    * This is a long running process which keeps WordPress in sync with the plugins DB.
+`node scripts/manager.js`
