@@ -27,7 +27,7 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 #### web-base-template
 
-1. Follow the installation steps for [web-base-tempalate](https://github.com/jquery/web-base-template).
+1. Follow the installation steps for [web-base-template](https://github.com/jquery/web-base-template).
 
 #### Install node >=0.6.4
 
