@@ -23,9 +23,9 @@ Process.prototype.onExit = function( code ) {
 	}
 };
 
-new Process( "update-server.js", "--console" );
-new Process( "wordpress-update.js", "--console" );
-new Process( "retry.js", "--console" );
+new Process( "update-server.js" );
+new Process( "wordpress-update.js" );
+new Process( "retry.js" );
 
 // Let SIGINT pass through to spawned processes. When all children exit,
 // the manager will end on its own.
