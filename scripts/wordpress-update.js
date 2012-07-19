@@ -120,18 +120,30 @@ actions.addRelease = function( data, fn ) {
 			this.parallel()( null, pageDetails );
 			var versions = getVersions( existingPage ),
 				mainPageCallback = this.parallel(),
-				existingCustomFields = existingPage && existingPage.customFields ?
-					existingPage.customFields : [],
-				mainPage = Object.create( pageDetails );
+				existingCustomFields = existingPage.customFields || [],
+				mainPage = {
+					customFields: existingCustomFields
+				};
 
-			mainPage.name = manifest.name;
-			mainPage.customFields = mainPage.customFields.concat([
+			// The main page starts as an empty object so that publishing a new
+			// version which is not the latest version only updates the metadata
+			// of the main page. If the new version is the latest, then use the
+			// main page is constructed from the new version since pretty much
+			// anything can change between versions.
+			if ( versions.latest === manifest.version ) {
+				mainPage = Object.create( pageDetails );
+				mainPage.name = manifest.name;
+				mainPage.customFields = mergeCustomFields(
+					existingCustomFields, pageDetails.customFields );
+			}
+
+			// Always update the metadata for the main page
+			mainPage.customFields = mergeCustomFields( mainPage.customFields, [
 				{ key: "versions", value: JSON.stringify( versions.listed ) },
 				{ key: "latest", value: versions.latest },
 				{ key: "watchers", value: repoMeta.watchers },
 				{ key: "forks", value: repoMeta.forks }
 			]);
-			mainPage.customFields = mergeCustomFields( existingCustomFields, mainPage.customFields );
 
 			if ( !existingPage.id ) {
 				wordpress.newPost( mainPage, mainPageCallback );
