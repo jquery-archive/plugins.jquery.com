@@ -91,6 +91,13 @@ var tests = {
 		]);
 	},
 
+	"name - blacklisted": function( manifest, fn ) {
+		manifest.name = "docs";
+		fn( manifest, manifest.version, [
+			"Name must not be 'docs'."
+		]);
+	},
+
 	"version - invalid type": function( manifest, fn ) {
 		manifest.version = 1;
 		fn( manifest, manifest.version, [
