@@ -4,7 +4,10 @@ Specification of the jQuery Plugins Site Manifest File
 # LIVING SPEC (heavily inspired by that of npm, thanks isaacs)
 
 This document is all you need to know about what's required in your jquery.json
-manifest file(s). It must be actual JSON, not just a JavaScript object literal.
+manifest file(s).
+
+Manifest files must live in the root of your repository and exist in your tags.
+The files must be actual JSON, not just a JavaScript object literal.
 
 **NOTE: Manifest file names must contain the plugin name, e.g. foo.jquery.json.**
 
