@@ -38,6 +38,7 @@ grunt.registerTask( "docs", function() {
 	var done = this.async();
 	grunt.helper( "wordpress-sync-posts", "site-content/", function( error ) {
 		if ( error ) {
+		console.log( error );
 			done( false );
 		}
 
