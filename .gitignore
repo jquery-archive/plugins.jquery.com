@@ -3,6 +3,3 @@ last-action
 plugins.db
 retry.db
 node_modules
-.DS_Store
-data.js
-test.js
