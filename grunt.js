@@ -46,7 +46,8 @@ grunt.registerTask( "docs", function() {
 });
 
 grunt.registerTask( "clean-all", function() {
-	var rimraf = require( "rimraf" );
+	var rimraf = require( "rimraf" ),
+		retry = require( "./lib/retrydb" );
 
 	// clean repo checkouts
 	rimraf.sync( config.repoDir );
@@ -56,14 +57,15 @@ grunt.registerTask( "clean-all", function() {
 	rimraf.sync( "last-action" );
 
 	// clean retrydb
-	rimraf.sync( "retry.db" );
+	rimraf.sync( retry.dbPath );
 });
 
 grunt.registerTask( "clean", function() {
-	var rimraf = require( "rimraf" );
+	var rimraf = require( "rimraf" ),
+		retry = require( "./lib/retrydb" );
 
 	rimraf.sync( "last-action" );
-	rimraf.sync( "retry.db" );
+	rimraf.sync( retry.dbPath );
 });
 
 grunt.registerTask( "setup-pluginsdb", function() {
