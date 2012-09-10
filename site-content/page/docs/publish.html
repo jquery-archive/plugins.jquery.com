@@ -1,0 +1,31 @@
+<script>{
+	"title": "Publishing Your Plugin"
+}</script>
+
+<p>Publishing your plugin on this site is a simple two step process.</p>
+
+<h2>Post-Receive Hook</h2>
+
+<p>First, you'll need to create a post-receive hook on GitHub. Just follow the
+<a href="https://help.github.com/articles/post-receive-hooks">step-by-step guide
+for adding a webhook</a> and set the URL to
+<code>http://plugins.jquery.com/update-hook</code>. Now you're ready to publish
+your plugin.</p>
+
+<h2>Publishing a Version</h2>
+
+<p>Once the post-receive hook is setup, publishing your plugin is as simple as
+tagging the version in git and pushing the tag to GitHub. The post-receive hook
+will notify the plugins site that a new tag is available and the plugins site
+will take care of the rest!</p>
+
+<p>The name of the tag <strong>must</strong> be a valid
+<a href="http://semver.org/">semver</a> value. The tag name may contain an
+optional <code>v</code> prefix. The tag name must also match the version listed
+in the manifest file. If the manifest file is valid, then the version will be
+automatically added to the plugins site.</p>
+
+<p>Unfortunately we do not currently have a system for notifying you if there is
+a problem. If you're interested in helping improve this aspect of the plugins
+site, we'd <a href="https://github.com/jquery/plugins.jquery.com/issues/11">love
+your help</a>.</p>

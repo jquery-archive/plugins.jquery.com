@@ -66,12 +66,6 @@ grunt.registerTask( "clean", function() {
 	rimraf.sync( "retry.db" );
 });
 
-grunt.registerTask( "setup-wordpress", function() {
-	// TODO: setup post-receive hook
-
-	grunt.task.run( "docs" );
-});
-
 grunt.registerTask( "setup-pluginsdb", function() {
 	var done = this.async();
 	require( "./lib/pluginsdb" )._setup(function( error ) {
@@ -113,7 +107,8 @@ grunt.registerTask( "restore-repos", function() {
 });
 
 grunt.registerTask( "default", "lint test" );
-grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb setup-wordpress" );
+grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb docs" );
+grunt.registerTask( "update", "docs" );
 grunt.registerTask( "restore", "clean setup-retrydb docs restore-repos" );
 
 };
