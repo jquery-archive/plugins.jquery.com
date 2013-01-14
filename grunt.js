@@ -38,13 +38,15 @@ grunt.registerTask( "docs", function() {
 	var done = this.async();
 	grunt.helper( "wordpress-sync-posts", "site-content/", function( error ) {
 		if ( error ) {
-			done( false );
+			return done( false );
 		}
 
 		done();
 	});
 });
 
+// clean-all will delete EVERYTHING, including the plugin registery. This is
+// useful only for development if you want a clean slate to test from.
 grunt.registerTask( "clean-all", function() {
 	var rimraf = require( "rimraf" ),
 		retry = require( "./lib/retrydb" );
@@ -60,6 +62,9 @@ grunt.registerTask( "clean-all", function() {
 	rimraf.sync( retry.dbPath );
 });
 
+// clean will only delete information about retries. It will not delete the
+// plugin registry and it will not remove local clones. This is useful for
+// restoring a WordPress site on a server that already has repos.
 grunt.registerTask( "clean", function() {
 	var rimraf = require( "rimraf" ),
 		retry = require( "./lib/retrydb" );
