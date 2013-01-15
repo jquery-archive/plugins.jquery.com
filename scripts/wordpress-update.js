@@ -168,7 +168,7 @@ actions.addRelease = function( data, fn ) {
 			wordpress.newPost( pageDetails, this.parallel() );
 		},
 
-		function( error, versions, latest ) {
+		function( error /*, versions, latest*/ ) {
 			if ( error ) {
 				return fn( error );
 			}

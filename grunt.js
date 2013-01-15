@@ -10,6 +10,11 @@ grunt.initConfig({
 		src: [ "lib/**", "scripts/**" ]
 	},
 
+	jshint: {
+		grunt: { options: grunt.file.readJSON( ".jshintrc" ) },
+		src: { options: grunt.file.readJSON( ".jshintrc" ) }
+	},
+
 	test: {
 		files: [ "test/**/*.js" ]
 	},
