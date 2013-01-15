@@ -89,8 +89,11 @@ processFailures(function( error ) {
 });
 
 // Let the current retry finish, then stop processing and exit
-process.once( "SIGINT", function() {
+function shutdownHook() {
 	processFailures = function( fn ) {
 		fn( null );
 	};
-});
+}
+
+process.once( "SIGINT", shutdownHook );
+process.once( "SIGTERM", shutdownHook );

@@ -31,12 +31,15 @@ Process.prototype.onExit = function( code ) {
 Process.startAll();
 
 // SIGINT is a graceful shutdown of all processes
-process.once( "SIGINT", function() {
+function shutdownHook() {
 	Process.list.forEach(function( process ) {
 		process.respawn = false;
 		process.child.kill( "SIGINT" );
 	});
-});
+}
+
+process.once( "SIGINT", shutdownHook );
+process.once( "SIGTERM", shutdownHook );
 
 // SIGHUP is a graceful restart of all child processes
 process.on( "SIGHUP", function() {
