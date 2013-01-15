@@ -54,6 +54,9 @@ server.on( "error", function( error ) {
 
 server.listen( port );
 
-process.once( "SIGINT", function() {
+function shutdownHook() {
 	server.close();
-});
+}
+
+process.once( "SIGINT", shutdownHook );
+process.once( "SIGTERM", shutdownHook );

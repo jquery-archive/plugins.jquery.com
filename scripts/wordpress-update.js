@@ -285,8 +285,11 @@ processActions(function( error ) {
 });
 
 // Let the current action finish, then stop processing and exit
-process.once( "SIGINT", function() {
+function shutdownHook() {
 	processActionsSince = function( actionId, fn ) {
 		fn( null );
 	};
-});
+}
+
+process.once( "SIGINT", shutdownHook );
+process.once( "SIGTERM", shutdownHook );
