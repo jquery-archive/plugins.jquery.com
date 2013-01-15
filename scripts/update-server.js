@@ -54,6 +54,12 @@ server.on( "error", function( error ) {
 
 server.listen( port );
 
-process.on( "SIGINT", function() {
+// Terminate the server gracefully when we receive a shutdown signal
+
+function shutdownHook() {
+	logger.log("Received kill signal for update-server.js; shutting down gracefully.");
 	server.close();
-});
+}
+
+process.on("SIGINT", shutdownHook);
+process.on("SIGTERM", shutdownHook);

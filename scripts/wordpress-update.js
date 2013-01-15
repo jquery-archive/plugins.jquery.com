@@ -284,8 +284,13 @@ processActions(function( error ) {
 });
 
 // Let the current action finish, then stop processing and exit
-process.on( "SIGINT", function() {
+
+function shutdownHook() {
+	logger.log("Received kill signal for wordpress-update.js; shutting down gracefully.");
 	processActionsSince = function( actionId, fn ) {
 		fn( null );
 	};
-});
+}
+
+process.on("SIGINT", shutdownHook);
+process.on("SIGTERM", shutdownHook);

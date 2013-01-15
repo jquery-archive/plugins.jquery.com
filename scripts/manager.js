@@ -28,9 +28,14 @@ new Process( "wordpress-update.js" );
 new Process( "retry.js" );
 
 // Let SIGINT pass through to spawned processes. When all children exit,
-// the manager will end on its own.
-process.on( "SIGINT", function() {
+// The manager will end on its own.
+
+function shutdownHook() {
+	logger.log("Received kill signal for manager.js; waiting for children to stop...");
 	Process.list.forEach(function( process ) {
 		process.respawn = false;
 	});
-});
+}
+
+process.on("SIGINT", shutdownHook);
+process.on("SIGTERM", shutdownHook);

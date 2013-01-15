@@ -89,8 +89,13 @@ processFailures(function( error ) {
 });
 
 // Let the current retry finish, then stop processing and exit
-process.on( "SIGINT", function() {
+
+function shutdownHook() {
+	logger.log("Received kill signal for retry.js; shutting down gracefully.");
 	processFailures = function( fn ) {
 		fn( null );
 	};
-});
+}
+
+process.on("SIGINT", shutdownHook);
+process.on("SIGTERM", shutdownHook);
