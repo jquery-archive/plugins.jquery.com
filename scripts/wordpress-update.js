@@ -284,7 +284,7 @@ processActions(function( error ) {
 });
 
 // Let the current action finish, then stop processing and exit
-process.on( "SIGINT", function() {
+process.once( "SIGINT", function() {
 	processActionsSince = function( actionId, fn ) {
 		fn( null );
 	};

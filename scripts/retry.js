@@ -89,7 +89,7 @@ processFailures(function( error ) {
 });
 
 // Let the current retry finish, then stop processing and exit
-process.on( "SIGINT", function() {
+process.once( "SIGINT", function() {
 	processFailures = function( fn ) {
 		fn( null );
 	};

@@ -27,10 +27,38 @@ new Process( "update-server.js" );
 new Process( "wordpress-update.js" );
 new Process( "retry.js" );
 
-// Let SIGINT pass through to spawned processes. When all children exit,
+// SIGINT is a graceful shutdown of all processes.
+// The signal passes through to the children and when they all exit,
 // the manager will end on its own.
-process.on( "SIGINT", function() {
+process.once( "SIGINT", function() {
 	Process.list.forEach(function( process ) {
 		process.respawn = false;
+		process.child.kill( "SIGINT" );
+	});
+});
+
+// SIGHUP is a graceful restart of all processes, including the manager.
+// A SIGINT is sent to all children and a new manager is spawned to create
+// new child processes.
+process.once( "SIGHUP", function() {
+	var waiting = Process.list.length;
+
+	function checkForShutdown() {
+		waiting--;
+		if ( !waiting ) {
+			process.exit();
+		}
+	}
+
+	// Spawn a new manager, which will spawn new children
+	spawn( process.argv[ 0 ], process.argv.slice( 1 ), {
+		detached: true
+	});
+
+	// Gracefully shutdown all child processes
+	Process.list.forEach(function( process ) {
+		process.respawn = false;
+		process.child.on( "exit", checkForShutdown );
+		process.child.kill( "SIGINT" );
 	});
 });

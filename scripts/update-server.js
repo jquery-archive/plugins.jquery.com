@@ -54,6 +54,6 @@ server.on( "error", function( error ) {
 
 server.listen( port );
 
-process.on( "SIGINT", function() {
+process.once( "SIGINT", function() {
 	server.close();
 });
