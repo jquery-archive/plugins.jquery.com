@@ -8,7 +8,12 @@ function Process( script ) {
 	Process.list.push( this );
 }
 
-Process.list = [];
+Process.startAll = function() {
+	this.list = [];
+	new Process( "update-server.js" );
+	new Process( "wordpress-update.js" );
+	new Process( "retry.js" );
+};
 
 Process.prototype.respawn = true;
 
@@ -23,13 +28,9 @@ Process.prototype.onExit = function( code ) {
 	}
 };
 
-new Process( "update-server.js" );
-new Process( "wordpress-update.js" );
-new Process( "retry.js" );
+Process.startAll();
 
-// SIGINT is a graceful shutdown of all processes.
-// The signal passes through to the children and when they all exit,
-// the manager will end on its own.
+// SIGINT is a graceful shutdown of all processes
 process.once( "SIGINT", function() {
 	Process.list.forEach(function( process ) {
 		process.respawn = false;
@@ -37,28 +38,11 @@ process.once( "SIGINT", function() {
 	});
 });
 
-// SIGHUP is a graceful restart of all processes, including the manager.
-// A SIGINT is sent to all children and a new manager is spawned to create
-// new child processes.
-process.once( "SIGHUP", function() {
-	var waiting = Process.list.length;
-
-	function checkForShutdown() {
-		waiting--;
-		if ( !waiting ) {
-			process.exit();
-		}
-	}
-
-	// Spawn a new manager, which will spawn new children
-	spawn( process.argv[ 0 ], process.argv.slice( 1 ), {
-		detached: true
-	});
-
-	// Gracefully shutdown all child processes
-	Process.list.forEach(function( process ) {
-		process.respawn = false;
-		process.child.on( "exit", checkForShutdown );
+// SIGHUP is a graceful restart of all child processes
+process.on( "SIGHUP", function() {
+	var old = Process.list;
+	Process.startAll();
+	old.forEach(function( process ) {
 		process.child.kill( "SIGINT" );
 	});
 });
