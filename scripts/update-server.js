@@ -1,7 +1,8 @@
 var http = require( "http" ),
 	service = require( "../lib/service" ),
 	hook = require( "../lib/hook" ),
-	logger = require( "../lib/logger" );
+	logger = require( "../lib/logger" ),
+	processing = {};
 
 var port = (function() {
 	var index = process.argv.indexOf( "-p" );
@@ -33,8 +34,17 @@ var server = http.createServer(function( request, response ) {
 		response.writeHead( 202 );
 		response.end();
 
+		// If we're already processing a request from this repo, skip the new
+		// request. This prevents parallel processing of the same data which
+		// could result in duplicate entries.
+		if ( processing[ repo.id ] ) {
+			return;
+		}
+
 		// Process the request
+		processing[ repo.id ] = true;
 		hook.processHook( repo, function( error ) {
+			delete processing[ repo.id ];
 			if ( error ) {
 				logger.error( "Error processing hook: " + error.stack );
 			}
