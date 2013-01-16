@@ -3,23 +3,37 @@ var config = require( "./lib/config" );
 module.exports = function( grunt ) {
 
 grunt.loadNpmTasks( "grunt-wordpress" );
+grunt.loadNpmTasks( "grunt-clean" );
+grunt.loadNpmTasks( "grunt-jquery-content" );
+grunt.loadNpmTasks( "grunt-check-modules" );
 
 grunt.initConfig({
+	clean: {
+		wordpress: "dist/"
+	},
 	lint: {
 		grunt: "grunt.js",
 		src: [ "lib/**", "scripts/**" ]
 	},
-
 	jshint: {
 		grunt: { options: grunt.file.readJSON( ".jshintrc" ) },
 		src: { options: grunt.file.readJSON( ".jshintrc" ) }
 	},
-
+	watch: {
+		docs: {
+			files: "pages/**",
+			tasks: "docs"
+		}
+	},
 	test: {
 		files: [ "test/**/*.js" ]
 	},
-
-	wordpress: config.wordpress
+	"build-pages": {
+		all: grunt.file.expandFiles( "pages/**" )
+	},
+	wordpress: grunt.utils._.extend({
+		dir: "dist/wordpress"
+	}, config.wordpress )
 });
 
 // We only want to sync the documentation, so we override wordpress-get-postpaths
@@ -39,9 +53,9 @@ grunt.registerHelper( "wordpress-get-postpaths", function( fn ) {
 	});
 });
 
-grunt.registerTask( "docs", function() {
+grunt.registerTask( "sync-docs", function() {
 	var done = this.async();
-	grunt.helper( "wordpress-sync-posts", "site-content/", function( error ) {
+	grunt.helper( "wordpress-sync-posts", "dist/wordpress/posts/", function( error ) {
 		if ( error ) {
 			return done( false );
 		}
@@ -67,10 +81,10 @@ grunt.registerTask( "clean-all", function() {
 	rimraf.sync( retry.dbPath );
 });
 
-// clean will only delete information about retries. It will not delete the
+// clean-retries will only delete information about retries. It will not delete the
 // plugin registry and it will not remove local clones. This is useful for
 // restoring a WordPress site on a server that already has repos.
-grunt.registerTask( "clean", function() {
+grunt.registerTask( "clean-retries", function() {
 	var rimraf = require( "rimraf" ),
 		retry = require( "./lib/retrydb" );
 
@@ -119,8 +133,8 @@ grunt.registerTask( "restore-repos", function() {
 });
 
 grunt.registerTask( "default", "lint test" );
-grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb docs" );
-grunt.registerTask( "update", "docs" );
-grunt.registerTask( "restore", "clean setup-retrydb docs restore-repos" );
+grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb sync-docs" );
+grunt.registerTask( "docs", "clean build-pages sync-docs" );
+grunt.registerTask( "restore", "clean-retries setup-retrydb sync-docs restore-repos" );
 
 };
