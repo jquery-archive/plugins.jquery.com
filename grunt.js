@@ -61,7 +61,7 @@ grunt.registerTask( "clean-all", function() {
 
 	// clean pluginsDb
 	rimraf.sync( config.pluginsDb );
-	rimraf.sync( "last-action" );
+	rimraf.sync( config.lastActionFile );
 
 	// clean retrydb
 	rimraf.sync( retry.dbPath );
@@ -74,7 +74,7 @@ grunt.registerTask( "clean", function() {
 	var rimraf = require( "rimraf" ),
 		retry = require( "./lib/retrydb" );
 
-	rimraf.sync( "last-action" );
+	rimraf.sync( config.lastActionFile );
 	rimraf.sync( retry.dbPath );
 });
 

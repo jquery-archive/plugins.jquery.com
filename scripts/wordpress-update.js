@@ -1,6 +1,7 @@
 var fs = require( "fs" ),
 	semver = require( "semver" ),
 	Step = require( "step" ),
+	config = require( "../lib/config" ),
 	wordpress = require( "../lib/wordpress" ),
 	pluginsDb = require( "../lib/pluginsdb" ),
 	service = require( "../lib/service" ),
@@ -186,7 +187,7 @@ actions.addRelease = function( data, fn ) {
 function processActions( fn ) {
 	Step(
 		function() {
-			fs.readFile( "last-action", "utf8", this );
+			fs.readFile( config.lastActionFile, "utf8", this );
 		},
 
 		function( error, lastAction ) {
@@ -231,7 +232,7 @@ var processActionsSince = function( actionId, fn ) {
 			}
 
 			this.parallel()( null, action );
-			fs.writeFile( "last-action", action.id, this.parallel() );
+			fs.writeFile( config.lastActionFile, action.id, this.parallel() );
 		},
 
 		function( error, action ) {
