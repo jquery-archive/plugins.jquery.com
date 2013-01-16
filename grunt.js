@@ -134,7 +134,7 @@ grunt.registerTask( "restore-repos", function() {
 
 grunt.registerTask( "default", "lint test" );
 grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb sync-docs" );
-grunt.registerTask( "docs", "clean build-pages sync-docs" );
+grunt.registerTask( "update", "clean build-pages sync-docs" );
 grunt.registerTask( "restore", "clean-retries setup-retrydb sync-docs restore-repos" );
 
 };
