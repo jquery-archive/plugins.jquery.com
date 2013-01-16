@@ -335,6 +335,18 @@ var tests = {
 	// 	]);
 	// },
 
+	"bugs - invalid type {}": function( manifest, fn ) {
+		manifest.bugs = {};
+		fn( manifest, manifest.version, [
+			"Invalid data type for bugs.url; must be a string."
+		]);
+	},
+
+	"bugs - { url: \"valid\" }": function( manifest, fn ) {
+		manifest.bugs = { url: "http://example.com/bugs/" };
+		fn( manifest, manifest.version, [] );
+	},
+
 	"maintainers - invalid type": function( manifest, fn ) {
 		manifest.maintainers = "John";
 		fn( manifest, manifest.version, [
