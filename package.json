@@ -17,6 +17,6 @@
     "wordpress": "0.1.3",
     "grunt": "0.3.17",
     "grunt-wordpress": "1.0.5",
-    "logger": "git://github.com/jquery/node-logger.git"
+    "simple-log": "1.0.1"
   }
 }
