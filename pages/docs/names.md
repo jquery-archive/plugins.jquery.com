@@ -27,4 +27,4 @@ In the case of an abandoned plugin where the original owner is no longer active,
 
 Certain prefixes will also be blacklisted for individual plugins. Large projects which include many plugins in a single repository, such as [jQuery UI](http://jqueryui.com), are registered as suites. Each suite is required to have a unique prefix and all of their plugin names must use that prefix. As such, no other plugin may use a name with a suite's prefix. Suites must be manually vetted by the jQuery team.
 
-*Note: In order to allow proper naming of extensions for plugins in a suite, the prefix blacklisting is only one level deep. For example, jQuery UI owns all `ui.*` names, but `ui.autocomplete.*` is open to the public.*
+**Note:** In order to allow proper naming of extensions for plugins in a suite, the prefix blacklisting is only one level deep. For example, jQuery UI owns all `ui.*` names, but `ui.autocomplete.*` is open to the public.
