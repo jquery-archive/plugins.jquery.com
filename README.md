@@ -4,7 +4,7 @@ The jQuery Plugins site, http://plugins.jquery.com/
 
 ### How it works
 
-The plugins site is an index of GitHub repositories that contain jQuery plugins. The repositories can contain one or many jQuery plugin with an accompanying valid jquery.json manifest files in the repository root. The specification for this file is in [docs/manifest.md](/jquery/plugins.jquery.com/blob/master/docs/manifest.md).
+The plugins site is an index of GitHub repositories that contain jQuery plugins. The repositories can contain one or many jQuery plugin with an accompanying valid jquery.json manifest files in the repository root. The specification for this file lives [here](plugins.jquery.com/docs/package-manifest).
 
 ### How to list a plugin
 
