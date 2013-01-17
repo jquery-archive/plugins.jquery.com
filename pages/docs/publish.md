@@ -36,7 +36,9 @@ tag name may contain an optional `v` prefix. The tag name must also match the
 version listed in the manifest file. If the manifest file is valid, then the
 version will be automatically added to the plugins site.
 
-## Having Trouble?  Unfortunately we do not currently have a system for
+## Having Trouble? 
+
+Unfortunately we do not currently have a system for
 notifying you if there is a problem. If you're interested in helping improve
 this aspect of the plugins site, we'd [love your
 help](https://github.com/jquery/plugins.jquery.com/issues/11).
