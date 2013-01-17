@@ -7,25 +7,42 @@ Publishing your plugin on the site is a three step process:
 ## Add a Post-Receive Hook
 
 First, you'll need to create a post-receive hook on GitHub. Just follow the
-[step-by-step guide for adding a webhook](https://help.github.com/articles/post-receive-hooks) and set the URL to `http://plugins.jquery.com/postreceive-hook`.
+[step-by-step guide for adding a
+webhook](https://help.github.com/articles/post-receive-hooks) and set the URL
+to `http://plugins.jquery.com/postreceive-hook`.
 
 ## Add a Manifest to your Repository
 
-The jQuery Plugins Registry will look in the root level of your repository for any files named `*.jquery.json`.  You will want to create <code><em>yourplugin</em>.jquery.json</code> according to the [package manifest specification](/docs/package-manifest/). You are now ready to publish your plugin!
+The jQuery Plugins Registry will look in the root level of your repository for
+any files named `*.jquery.json`.  You will want to create
+<code><em>yourplugin</em>.jquery.json</code> according to the [package manifest
+specification](/docs/package-manifest/). You are now ready to publish your
+plugin!
 
 ## Publishing a Version
 
-After the post-receive hook is setup and your manifest has been added, publishing your plugin is as simple as tagging the version in git and pushing the tag to GitHub.  The post-receive hook will notify the plugins site that a new tag is available and the plugins site will take care of the rest!
+After the post-receive hook is setup and your manifest has been added,
+publishing your plugin is as simple as tagging the version in git and pushing
+the tag to GitHub.  The post-receive hook will notify the plugins site that a
+new tag is available and the plugins site will take care of the rest!
 
 ```bash
-git tag 0.1.0 ; git push origin --tags
+$ git tag 0.1.0
+$ git push origin --tags
 ```
 
-The name of the tag **must** be a valid [semver](http://semver.org/) value. The tag name may contain an optional `v` prefix. The tag name must also match the version listed
-in the manifest file. If the manifest file is valid, then the version will be
-automatically added to the plugins site.
+The name of the tag **must** be a valid [semver](http://semver.org/) value. The
+tag name may contain an optional `v` prefix. The tag name must also match the
+version listed in the manifest file. If the manifest file is valid, then the
+version will be automatically added to the plugins site.
 
-## Having Trouble?
-Unfortunately we do not currently have a system for notifying you if there is a problem. If you're interested in helping improve this aspect of the plugins site, we'd [love your help](https://github.com/jquery/plugins.jquery.com/issues/11).
+## Having Trouble?  Unfortunately we do not currently have a system for
+notifying you if there is a problem. If you're interested in helping improve
+this aspect of the plugins site, we'd [love your
+help](https://github.com/jquery/plugins.jquery.com/issues/11).
 
-If you encounter trouble getting this process to work with your plugin, please join the IRC channel [#jquery-content](irc://freenode.net:6667/#jquery-content) on freenode.  If you can't seem to connect with someone in the IRC channel, please feel free to email us at [plugins@jquery.com](mailto:plugins@jquery.com).
+If you encounter trouble getting this process to work with your plugin, please
+join the IRC channel [#jquery-content](irc://freenode.net:6667/#jquery-content)
+on [freenode](http://freenode.net).  If you can't seem to connect with someone
+in the IRC channel, please feel free to email us at
+[plugins@jquery.com](mailto:plugins@jquery.com).
