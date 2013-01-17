@@ -4,12 +4,11 @@ The jQuery Plugins site, http://plugins.jquery.com/
 
 ### How it works
 
-The plugins site is an index of GitHub repositories that contain jQuery plugins. The repositories can contain one or many jQuery plugin with an accompanying valid jquery.json manifest files in the repository root. The specification for this file lives [here](plugins.jquery.com/docs/package-manifest).
+The plugins site is an index of GitHub repositories that contain jQuery plugins. The repositories can contain one or many jQuery plugin with an accompanying valid `plugin.jquery.json` manifest file in the repository root. The specification for this file lives [here](plugins.jquery.com/docs/package-manifest).
 
 ### How to list a plugin
 
-Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to your repository with our web hook url, `http://plugins.jquery.com/_update`.
-**Warning:** This is not yet functional!
+Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to your repository with our web hook url, `http://plugins.jquery.com/postreceive-hook.`.
 
 ## Development
 
