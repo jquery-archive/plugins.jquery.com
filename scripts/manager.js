@@ -1,6 +1,7 @@
 var path = require( "path" ),
 	spawn = require( "child_process" ).spawn,
-	logger = require( "../lib/logger" );
+	logger = require( "../lib/logger" ),
+	consoleOption = process.argv.indexOf( "--console" ) ? "--console" : "";
 
 logger.log( "Manager started." );
 
@@ -13,15 +14,15 @@ function Process( script ) {
 
 Process.startAll = function() {
 	this.list = [];
-	new Process( "update-server.js" );
-	new Process( "wordpress-update.js" );
-	new Process( "retry.js" );
+	new Process( "update-server.js", consoleOption );
+	new Process( "wordpress-update.js", consoleOption );
+	new Process( "retry.js", consoleOption );
 };
 
 Process.prototype.respawn = true;
 
 Process.prototype.start = function() {
-	this.child = spawn( "node", this.args );
+	this.child = spawn( "node", this.args, { stdio: "inherit" } );
 	this.child.on( "exit", this.onExit.bind( this ) );
 };
 
