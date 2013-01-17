@@ -1,5 +1,6 @@
 var path = require( "path" ),
-	spawn = require( "child_process" ).spawn;
+	spawn = require( "child_process" ).spawn,
+	logger = require( "../lib/logger" );
 
 function Process( script ) {
 	this.args = [].slice.call( arguments );
@@ -32,6 +33,7 @@ Process.startAll();
 
 // SIGINT and SIGTERM perform a graceful shutdown of all processes
 function shutdownHook() {
+	logger.log( "Shutting down manager." );
 	Process.list.forEach(function( process ) {
 		process.respawn = false;
 		process.child.kill( "SIGINT" );
@@ -42,6 +44,7 @@ process.once( "SIGTERM", shutdownHook );
 
 // SIGHUP is a graceful restart of all child processes
 process.on( "SIGHUP", function() {
+	logger.log( "Restarting child processes." );
 	var old = Process.list;
 	Process.startAll();
 	old.forEach(function( process ) {

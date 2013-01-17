@@ -90,6 +90,7 @@ processFailures(function( error ) {
 
 // Let the current retry finish, then stop processing and exit
 function shutdownHook() {
+	logger.log( "Shutting down retry." );
 	processFailures = function( fn ) {
 		fn( null );
 	};

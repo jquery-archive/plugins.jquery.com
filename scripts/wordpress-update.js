@@ -286,6 +286,7 @@ processActions(function( error ) {
 
 // Let the current action finish, then stop processing and exit
 function shutdownHook() {
+	logger.log( "Shutting down wordpress-update." );
 	processActionsSince = function( actionId, fn ) {
 		fn( null );
 	};

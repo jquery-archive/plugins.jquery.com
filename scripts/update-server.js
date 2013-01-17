@@ -22,6 +22,7 @@ var server = http.createServer(function( request, response ) {
 
 	request.on( "end", function() {
 		var repo = service.getRepoByHook( data );
+
 		if ( !repo ) {
 			// Invalid data, stop processing
 			logger.error( "Invalid request: " + data );
@@ -29,6 +30,8 @@ var server = http.createServer(function( request, response ) {
 			response.end();
 			return;
 		}
+
+		logger.log( "Received request: " + repo.id );
 
 		// Accept the request and close the connection
 		response.writeHead( 202 );
@@ -38,6 +41,7 @@ var server = http.createServer(function( request, response ) {
 		// request. This prevents parallel processing of the same data which
 		// could result in duplicate entries.
 		if ( processing[ repo.id ] ) {
+			logger.log( "Skipping parallel processing." );
 			return;
 		}
 
@@ -45,6 +49,7 @@ var server = http.createServer(function( request, response ) {
 		processing[ repo.id ] = true;
 		hook.processHook( repo, function( error ) {
 			delete processing[ repo.id ];
+			logger.log( "Done processing request: " + repo.id );
 			if ( error ) {
 				logger.error( "Error processing hook: " + error.stack );
 			}
@@ -65,6 +70,7 @@ server.on( "error", function( error ) {
 server.listen( port );
 
 function shutdownHook() {
+	logger.log( "Shutting down update-server." );
 	server.close();
 }
 
