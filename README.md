@@ -14,7 +14,7 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 ### Requires
 
-* jQuery's [web-base-template](https://github.com/jquery/web-base-template)
+* jQuery's [web-base-template](https://github.com/jquery/jquery-wp-content/)
 * Web server (such as Apache)
 * PHP
 * MySQL
@@ -26,7 +26,7 @@ Simply add a [post-receive hook](http://help.github.com/post-receive-hooks/) to 
 
 #### web-base-template
 
-1. Follow the installation steps for [web-base-template](https://github.com/jquery/web-base-template).
+1. Follow the installation steps for [web-base-template](https://github.com/jquery/jquery-wp-content/).
 
 #### Install node >=0.6.4
 
