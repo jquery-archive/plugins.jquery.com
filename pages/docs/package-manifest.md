@@ -85,7 +85,7 @@ a url property linking to the actual text and an optional "type" property specif
 "licenses": [
   {
     "type": "GPLv2",
-      "url": "http://www.example.com/licenses/gpl.html"
+    "url": "http://www.example.com/licenses/gpl.html"
   }
 ]
 ```
@@ -213,7 +213,7 @@ For example, the following are equivalent:
 * `"~1.2" = ">=1.2.0 <2.0.0"`
 * `"~1" = ">=1.0.0 <2.0.0"`
 
-### <a href="x-version-ranges">X Version Ranges</a>
+### <a name="x-version-ranges">X Version Ranges</a>
 
 An "x" in a version range specifies that the version number must start
 with the supplied digits, but any digit may be used in place of the x.
@@ -229,7 +229,7 @@ The following are equivalent:
 You may not supply a comparator with a version containing an x. Any
 digits after the first "x" are ignored.
 
-### <a href="sample">Sample manifest</a>
+### <a name="sample">Sample manifest</a>
 
 **color.jquery.json**
 
