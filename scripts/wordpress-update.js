@@ -42,7 +42,7 @@ actions.addRelease = function( data, fn ) {
 					content: manifest.description,
 					date: date,
 					termNames: {
-						post_tag: manifest.keywords.map(function( keyword ) {
+						post_tag: (manifest.keywords || []).map(function( keyword ) {
 							return keyword.toLowerCase();
 						})
 					},
