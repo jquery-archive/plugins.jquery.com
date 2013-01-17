@@ -9,6 +9,8 @@ var port = (function() {
 	return index === -1 ? 8001 : +process.argv[ index + 1 ];
 })();
 
+logger.log( "update-server started; listening on port " + port + "." );
+
 process.on( "uncaughtException", function( error ) {
 	logger.error( "Uncaught exception: " + error.stack );
 });

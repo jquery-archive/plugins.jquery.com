@@ -2,6 +2,8 @@ var path = require( "path" ),
 	spawn = require( "child_process" ).spawn,
 	logger = require( "../lib/logger" );
 
+logger.log( "Manager started." );
+
 function Process( script ) {
 	this.args = [].slice.call( arguments );
 	this.args[ 0 ] = path.join( __dirname, script );

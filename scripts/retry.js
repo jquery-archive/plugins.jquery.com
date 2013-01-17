@@ -4,6 +4,8 @@ var Step = require( "step" ),
 	retry = require( "../lib/retrydb" ),
 	logger = require( "../lib/logger" );
 
+logger.log( "retry started." );
+
 process.on( "uncaughtException", function( error ) {
 	logger.error( "Uncaught exception: " + error.stack );
 });

@@ -7,6 +7,8 @@ var fs = require( "fs" ),
 	service = require( "../lib/service" ),
 	logger = require( "../lib/logger" );
 
+logger.log( "wordpress-update started." );
+
 process.on( "uncaughtException", function( error ) {
 	logger.error( "Uncaught exception: " + error.stack );
 });
