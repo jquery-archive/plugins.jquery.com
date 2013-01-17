@@ -36,6 +36,10 @@ tag name may contain an optional `v` prefix. The tag name must also match the
 version listed in the manifest file. If the manifest file is valid, then the
 version will be automatically added to the plugins site.
 
+We highly suggest that you **do not overwrite old tags**, instead, push a new
+version number tag (and commit to the manifest) to fix any errors you've
+encounterd.
+
 ## Having Trouble? 
 
 Unfortunately we do not currently have a system for
@@ -48,3 +52,11 @@ join the IRC channel [#jquery-content](irc://freenode.net:6667/#jquery-content)
 on [freenode](http://freenode.net).  If you can't seem to connect with someone
 in the IRC channel, please feel free to email us at
 [plugins@jquery.com](mailto:plugins@jquery.com).
+
+## How long should the process take
+
+When everything works, this process is pretty close to instant.  There are
+caches in place, etc, but in general, if you haven't seen your plugin get
+updated on the site within 5 minutes, there is a good chance something went
+wrong.  Going into your Web Hooks settings and hitting the "Test Hook" button
+(once) may help if you recently pushed a new tag.
