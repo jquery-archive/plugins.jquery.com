@@ -110,12 +110,14 @@ actions.addRelease = function( data, fn ) {
 
 	Step(
 		function getPageData() {
+			logger.log( "getPageData()" );
 			getPageDetails( this.parallel() );
 			pluginsDb.getMeta( manifest.name, this.parallel() );
 			wordpress.getPostForPlugin( manifest.name, this.parallel() );
 		},
 
 		function updateMainPage( error, pageDetails, repoMeta, existingPage ) {
+			logger.log( "updateMainPage()" );
 			if ( error ) {
 				return fn( error );
 			}
@@ -162,6 +164,7 @@ actions.addRelease = function( data, fn ) {
 		},
 
 		function createVersionPage( error, pageDetails, mainPageId ) {
+			logger.log( "createVersionPage()" );
 			if ( error ) {
 				return fn( error );
 			}
@@ -187,6 +190,7 @@ actions.addRelease = function( data, fn ) {
 
 
 function processActions( fn ) {
+	logger.log( "Processing actions." );
 	Step(
 		function() {
 			fs.readFile( config.lastActionFile, "utf8", this );
@@ -194,6 +198,7 @@ function processActions( fn ) {
 
 		function( error, lastAction ) {
 			if ( error && error.code === "ENOENT" ) {
+				logger.log( "No last-action file." );
 				return null;
 			}
 
@@ -217,6 +222,7 @@ function processActions( fn ) {
 var processActionsSince = function( actionId, fn ) {
 	Step(
 		function() {
+			logger.log( "Parsing actions since " + actionId );
 			processNextAction( actionId, this );
 		},
 
@@ -263,6 +269,7 @@ function processNextAction( actionId, fn ) {
 			}
 
 			if ( !action ) {
+				logger.log( "No actions after " + actionId );
 				return fn( null, null );
 			}
 
