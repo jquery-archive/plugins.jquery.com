@@ -49,13 +49,18 @@ var server = http.createServer(function( request, response ) {
 
 		// Process the request
 		processing[ repo.id ] = true;
-		hook.processHook( repo, function( error ) {
-			delete processing[ repo.id ];
-			logger.log( "Done processing request: " + repo.id );
-			if ( error ) {
-				logger.error( "Error processing hook: " + error.stack );
-			}
-		});
+		// GitHub seems to notify us too soon when there are tags. If we
+		// immediately check for new tags, the data may not be available yet,
+		// so we wait a bit before trying to process the request.
+		setTimeout(function() {
+			hook.processHook( repo, function( error ) {
+				delete processing[ repo.id ];
+				logger.log( "Done processing request: " + repo.id );
+				if ( error ) {
+					logger.error( "Error processing hook: " + error.stack );
+				}
+			});
+		}, 20000 );
 	});
 });
 
