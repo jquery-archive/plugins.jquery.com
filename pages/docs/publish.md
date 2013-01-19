@@ -38,9 +38,9 @@ version listed in the manifest file. So, if the version field in the manifest
 is "0.1.1" the tag should be either "0.1.1" or "v0.1.1". If the manifest file
 is valid, the version will be automatically added to the plugins site.
 
-We highly suggest that you **do not overwrite old tags**, instead, push a new
-version number tag (and commit to the manifest) to fix any errors you've
-encountered.
+We highly suggest that you **do not overwrite old tags**, instead, update the
+version number tag in the manifest, commit, and create a new tag to fix any
+errors you've encountered.
 
 ## Having Trouble? 
 
