@@ -16,8 +16,9 @@ to `http://plugins.jquery.com/postreceive-hook`.
 The jQuery Plugins Registry will look in the root level of your repository for
 any files named `*.jquery.json`.  You will want to create
 <code><em>yourplugin</em>.jquery.json</code> according to the [package manifest
-specification](/docs/package-manifest/). You are now ready to publish your
-plugin!
+specification](/docs/package-manifest/). Use an online JSON verifier such as
+[JSONlint](http://jsonlint.com) to make sure the file is valid. You are now
+ready to publish your plugin!
 
 ## Publishing a Version
 
@@ -31,14 +32,15 @@ $ git tag 0.1.0
 $ git push origin --tags
 ```
 
-The name of the tag **must** be a valid [semver](http://semver.org/) value. The
-tag name may contain an optional `v` prefix. The tag name must also match the
-version listed in the manifest file. If the manifest file is valid, then the
-version will be automatically added to the plugins site.
+The name of the tag **must** be a valid [semver](http://semver.org/) value, but
+may contain an optional `v` prefix. The tag name must also match the
+version listed in the manifest file. So, if the version field in the manifest
+is "0.1.1" the tag should be either "0.1.1" or "v0.1.1". If the manifest file
+is valid, the version will be automatically added to the plugins site.
 
 We highly suggest that you **do not overwrite old tags**, instead, push a new
 version number tag (and commit to the manifest) to fix any errors you've
-encounterd.
+encountered.
 
 ## Having Trouble? 
 
