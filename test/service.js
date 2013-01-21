@@ -209,6 +209,11 @@ var tests = {
 	// 	]);
 	// },
 
+	"dependencies - infinite version range": function( manifest, fn ) {
+		manifest.dependencies.jquery = "*";
+		fn( manifest, manifest.version, [] );
+	},
+
 	"dependencies - invalid type": function( manifest, fn ) {
 		manifest.dependencies = [ "jquery" ];
 		fn( manifest, manifest.version, [
