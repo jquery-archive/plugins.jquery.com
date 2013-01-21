@@ -2,5 +2,6 @@ config.json
 last-action
 plugins.db
 retry.db
+error.log
 node_modules
 dist/
