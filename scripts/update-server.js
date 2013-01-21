@@ -60,7 +60,7 @@ var server = http.createServer(function( request, response ) {
 					logger.error( "Error processing hook: " + error.stack );
 				}
 			});
-		}, 20000 );
+		}, 60000 );
 	});
 });
 
