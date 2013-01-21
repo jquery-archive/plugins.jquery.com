@@ -83,10 +83,10 @@ a url property linking to the actual text and an optional "type" property specif
 
 ```
 "licenses": [
-  {
-    "type": "GPLv2",
-    "url": "http://www.example.com/licenses/gpl.html"
-  }
+	{
+		"type": "GPLv2",
+		"url": "http://www.example.com/licenses/gpl.html"
+	}
 ]
 ```
 
@@ -150,11 +150,11 @@ See [People Fields](#people-fields).
 A "person" is an object with a "name" field and optionally "url" and
 "email", like this:
 
-``` json
+```json
 {
-  "name" : "Barney Rubble",
-    "email" : "b@rubble.com",
-    "url" : "http://barnyrubble.tumblr.com/"
+	"name" : "Barney Rubble",
+		"email" : "b@rubble.com",
+		"url" : "http://barnyrubble.tumblr.com/"
 }
 ```
 
@@ -176,7 +176,6 @@ is a semver compatible version identifier.
 * `~version` See 'Tilde Version Ranges' below
 * `1.2.x` See 'X Version Ranges' below
 * `*` Matches any version
-* `""` (just an empty string) Same as `*`
 * `version1 - version2` Same as `>=version1 <=version2`.
 * `range1 || range2` Passes if either range1 or range2 are satisfied.
 
@@ -184,18 +183,18 @@ For example, these are all valid:
 
 ```json
 { "dependencies" :
-  {
-    "foo" : "1.0.0 - 2.9999.9999",
-      "bar" : ">=1.0.2 <2.1.2",
-      "baz" : ">1.0.2 <=2.3.4",
-      "boo" : "2.0.1",
-      "qux" : "<1.0.0 || >=2.3.1 <2.4.5 || >=2.5.2 <3.0.0",
-      "asd" : "http://asdf.com/asdf.tar.gz",
-      "til" : "~1.2",
-      "elf" : "~1.2.3",
-      "two" : "2.x",
-      "thr" : "3.3.x"
-  }
+	{
+		"foo" : "1.0.0 - 2.9999.9999",
+			"bar" : ">=1.0.2 <2.1.2",
+			"baz" : ">1.0.2 <=2.3.4",
+			"boo" : "2.0.1",
+			"qux" : "<1.0.0 || >=2.3.1 <2.4.5 || >=2.5.2 <3.0.0",
+			"asd" : "http://asdf.com/asdf.tar.gz",
+			"til" : "~1.2",
+			"elf" : "~1.2.3",
+			"two" : "2.x",
+			"thr" : "3.3.x"
+	}
 }
 ```
 
@@ -235,38 +234,37 @@ digits after the first "x" are ignored.
 
 ```json
 {
-  "name": "color",
-  "title": "jQuery Color",
-  "description": "jQuery plugin for color manipulation and animation support.",
-  "keywords": [
-    "color",
-    "animation"
-  ],
-  "version": "2.1.2",
-  "author": {
-    "name": "jQuery Foundation and other contributors",
-    "url": "https://github.com/jquery/jquery-color/blob/2.1.2/AUTHORS.txt"
-  },
-  "maintainers": [
-    {
-      "name": "Corey Frang",
-      "email": "gnarf37@gmail.com",
-      "url": "http://gnarf.net"
-    }
-  ],
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/jquery/jquery-color/blob/2.1.2/MIT-LICENSE.txt"
-    }
-  ],
-  "bugs": "https://github.com/jquery/jquery-color/issues",
-  "homepage": "https://github.com/jquery/jquery-color",
-  "docs": "https://github.com/jquery/jquery-color",
-  "download": "http://code.jquery.com/#color",
-  "dependencies": {
-    "jquery": ">=1.5"
-  }
+	"name": "color",
+	"title": "jQuery Color",
+	"description": "jQuery plugin for color manipulation and animation support.",
+	"keywords": [
+		"color",
+		"animation"
+	],
+	"version": "2.1.2",
+	"author": {
+		"name": "jQuery Foundation and other contributors",
+		"url": "https://github.com/jquery/jquery-color/blob/2.1.2/AUTHORS.txt"
+	},
+	"maintainers": [
+		{
+			"name": "Corey Frang",
+			"email": "gnarf37@gmail.com",
+			"url": "http://gnarf.net"
+		}
+	],
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "https://github.com/jquery/jquery-color/blob/2.1.2/MIT-LICENSE.txt"
+		}
+	],
+	"bugs": "https://github.com/jquery/jquery-color/issues",
+	"homepage": "https://github.com/jquery/jquery-color",
+	"docs": "https://github.com/jquery/jquery-color",
+	"download": "http://code.jquery.com/#color",
+	"dependencies": {
+		"jquery": ">=1.5"
+	}
 }
 ```
-
