@@ -1,6 +1,9 @@
 var config = require( "./lib/config" );
+var path = require( "path" );
 
 module.exports = function( grunt ) {
+
+var async = grunt.utils.async;
 
 grunt.loadNpmTasks( "grunt-wordpress" );
 grunt.loadNpmTasks( "grunt-clean" );
@@ -31,6 +34,9 @@ grunt.initConfig({
 	"build-pages": {
 		all: grunt.file.expandFiles( "pages/**" )
 	},
+        "build-resources": {
+                all: grunt.file.expandFiles( "resources/**/*" )
+        },
 	wordpress: grunt.utils._.extend({
 		dir: "dist/wordpress"
 	}, config.wordpress )
@@ -55,12 +61,21 @@ grunt.registerHelper( "wordpress-get-postpaths", function( fn ) {
 
 grunt.registerTask( "sync-docs", function() {
 	var done = this.async();
-	grunt.helper( "wordpress-sync-posts", "dist/wordpress/posts/", function( error ) {
-		if ( error ) {
-			return done( false );
+        var dir = grunt.config( "wordpress.dir" );
+
+        async.waterfall([
+                function syncPosts( fn ) {
+                        grunt.helper( "wordpress-sync-posts", "dist/wordpress/posts/", fn );
+                },
+                function syncResources( fn ) {
+                        grunt.helper( "wordpress-sync-resources", path.join( dir, "resources/" ), fn );
+                }
+        ], function( error ) {
+                if ( !error ) {
+                        return done();
 		}
 
-		done();
+                done( false );
 	});
 });
 
@@ -132,9 +147,10 @@ grunt.registerTask( "restore-repos", function() {
 	});
 });
 
+
 grunt.registerTask( "default", "lint test" );
-grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb build-pages sync-docs" );
-grunt.registerTask( "update", "clean build-pages sync-docs" );
-grunt.registerTask( "restore", "clean-retries setup-retrydb build-pages sync-docs restore-repos" );
+grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb build-pages sync-docs build-resources" );
+grunt.registerTask( "update", "clean build-pages build-resources sync-docs" );
+grunt.registerTask( "restore", "clean-retries setup-retrydb build-pages sync-docs build-resources restore-repos" );
 
 };

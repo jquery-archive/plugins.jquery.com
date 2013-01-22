@@ -20,6 +20,16 @@ specification](/docs/package-manifest/). Use an online JSON verifier such as
 [JSONlint](http://jsonlint.com) to make sure the file is valid. You are now
 ready to publish your plugin!
 
+<h2>Validate Your Manifest File Here</h2>
+
+<div>
+  Upload your manifest file to check for common errors:
+  <input type="file" name="files" value="Upload Manifest" />
+  <div class="validator-output"></div>
+</div>
+
+<script src="/resources/validate.js"></script>
+
 ## Publishing a Version
 
 After the post-receive hook is setup and your manifest has been added,
@@ -42,7 +52,9 @@ We highly suggest that you **do not overwrite old tags**, instead, update the
 version number tag in the manifest, commit, and create a new tag to fix any
 errors you've encountered.
 
-## Having Trouble? 
+
+## Troubleshooting
+
 
 Unfortunately we do not currently have a system for
 notifying you if there is a problem. If you're interested in helping improve
