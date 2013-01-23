@@ -1,4 +1,6 @@
 var http = require( "http" ),
+	fs = require( "fs" ),
+	config = require( "../lib/config" ),
 	service = require( "../lib/service" ),
 	hook = require( "../lib/hook" ),
 	logger = require( "../lib/logger" ),
@@ -23,6 +25,10 @@ var server = http.createServer(function( request, response ) {
 	});
 
 	request.on( "end", function() {
+		if ( request.url === "/error.log" ) {
+			return fs.createReadStream( config.errorLog ).pipe( response );
+		}
+
 		var repo = service.getRepoByHook( data );
 
 		if ( !repo ) {
