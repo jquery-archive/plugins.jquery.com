@@ -12,8 +12,11 @@
 		};
 		logger.details = function( content ) {
 			logger( "<pre>"+content+"</pre>", true );
-		};
-		logger.output = [];
+		};	
+		logger.clear = function() {
+      logger.output = [];
+    };
+		logger.clear();
 		return logger;
 	})();
 
@@ -23,7 +26,8 @@
 
   var handler = function( e ) {
 		e.preventDefault();
-		var output = $( ".validator-output" ).empty();
+		var output = $( ".validator-output" );
+    log.clear();
 		var files = e.target.files;
 		var file = files && files[0];
 		if ( !file ) {
@@ -64,6 +68,41 @@
 						log( "the <code>name</code> propety of the <code>author</code> people object is required. See " + helpLinks.people + " for more information" );
 					}
 				}
+
+        if ( manifest.keywords ) {
+					if ( $.type( manifest.keywords ) !== "array" ) {
+						log( "<code>keywords</code> property must be an array" );
+					} else {	
+						$.each( manifest.keywords, function( i, v ) {
+							if ( !(/^[a-zA-Z0-9\.\-]+$/).test( v ) ) { 
+                log( "Keyword <code>" + v + "</code> has invalid characters. Only letters, numbers, periods and hiphens are allowed" );
+							}
+						});
+					}
+				}
+
+		  if ( manifest.licenses ) {
+				if ( $.type( manifest.licenses ) !== "array" ) {
+					log( "<code>licences</code> property must be an array" );
+				} else {	
+				  $.each( manifest.licenses, function( i, v ) {
+            if ( $.type( v ) !== "object" ) {
+							log( "The elements in the licenses array must be objects" );
+						} else {
+							if ( !v.type ) {
+								log( "Each license object must have a <code>type</code> property" );
+							}
+							if ( !v.url ) {
+								log( "Each license object must have a <code>url</code> property" );
+							}
+						}
+					});
+				}
+			}
+         
+							
+						 
+         
 			}
 			var logContent = log.output.join('');
 			output.html( logContent || "<h2>Your manifest file passed all tests</h2>" );

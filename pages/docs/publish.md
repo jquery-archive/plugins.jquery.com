@@ -25,6 +25,9 @@ ready to publish your plugin!
 <div>
   Upload your manifest file to check for common errors:
   <input type="file" name="files" value="Upload Manifest" />
+  <p>Since this tool uses the new HTML5 FileReader API to look at the file contents
+     without actually uploading your file to the server, you'll need a moder browser
+     like Chrome, Safari, Firefox, Opera or IE10. </p>
   <div class="validator-output"></div>
 </div>
 
