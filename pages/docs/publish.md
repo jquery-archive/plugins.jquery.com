@@ -58,13 +58,9 @@ errors you've encountered.
 
 ## Troubleshooting
 
+If you have problems with your plugin not publishing you should check the [error log](/error.log) for hints on what the problem might be. The most common problem we find is due to a missing manifest file.
 
-Unfortunately we do not currently have a system for
-notifying you if there is a problem. If you're interested in helping improve
-this aspect of the plugins site, we'd [love your
-help](https://github.com/jquery/plugins.jquery.com/issues/11).
-
-If you encounter trouble getting this process to work with your plugin, please
+If you still encounter trouble getting this process to work with your plugin, please
 join the IRC channel [#jquery-content](irc://freenode.net:6667/#jquery-content)
 on [freenode](http://freenode.net).  If you can't seem to connect with someone
 in the IRC channel, please feel free to email us at
