@@ -1,5 +1,5 @@
 <script>{
-        "title": "Publishing Your Plugin"
+	"title": "Publishing Your Plugin"
 }</script>
 
 Publishing your plugin on the site is a three step process:
@@ -23,12 +23,12 @@ ready to publish your plugin!
 <h2>Validate Your Manifest File Here</h2>
 
 <div>
-  Upload your manifest file to check for common errors:
-  <input type="file" name="files" value="Upload Manifest" />
-  <p>Since this tool uses the new HTML5 FileReader API to look at the file contents
-     without actually uploading your file to the server, you'll need a moder browser
-     like Chrome, Safari, Firefox, Opera or IE10. </p>
-  <div class="validator-output"></div>
+	Upload your manifest file to check for common errors:
+	<input type="file" name="files" value="Upload Manifest">
+	<p>Since this tool uses the new HTML5 FileReader API to look at the file contents
+		without actually uploading your file to the server, you'll need a moder browser
+		like Chrome, Safari, Firefox, Opera or IE10. </p>
+	<div class="validator-output"></div>
 </div>
 
 <script src="/resources/validate.js"></script>
@@ -54,7 +54,6 @@ is valid, the version will be automatically added to the plugins site.
 We highly suggest that you **do not overwrite old tags**, instead, update the
 version number tag in the manifest, commit, and create a new tag to fix any
 errors you've encountered.
-
 
 ## Troubleshooting
 
