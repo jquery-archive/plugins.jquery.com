@@ -34,9 +34,9 @@ grunt.initConfig({
 	"build-pages": {
 		all: grunt.file.expandFiles( "pages/**" )
 	},
-        "build-resources": {
-                all: grunt.file.expandFiles( "resources/**/*" )
-        },
+	"build-resources": {
+		all: grunt.file.expandFiles( "resources/**" )
+	},
 	wordpress: grunt.utils._.extend({
 		dir: "dist/wordpress"
 	}, config.wordpress )
@@ -59,23 +59,54 @@ grunt.registerHelper( "wordpress-get-postpaths", function( fn ) {
 	});
 });
 
-grunt.registerTask( "sync-docs", function() {
-	var done = this.async();
-        var dir = grunt.config( "wordpress.dir" );
+grunt.registerMultiTask( "build-resources", "Copy resources", function() {
+	var task = this,
+		taskDone = task.async(),
+		files = this.data,
+		targetDir = grunt.config( "wordpress.dir" ) + "/resources/";
 
-        async.waterfall([
-                function syncPosts( fn ) {
-                        grunt.helper( "wordpress-sync-posts", "dist/wordpress/posts/", fn );
-                },
-                function syncResources( fn ) {
-                        grunt.helper( "wordpress-sync-resources", path.join( dir, "resources/" ), fn );
-                }
-        ], function( error ) {
-                if ( !error ) {
-                        return done();
+	grunt.file.mkdir( targetDir );
+
+	grunt.utils.async.forEachSeries( files, function( fileName, fileDone )  {
+		grunt.file.copy( fileName, targetDir + fileName.replace( /^.+?\//, "" ) );
+		fileDone();
+	}, function() {
+		if ( task.errorCount ) {
+			grunt.warn( "Error building resources." );
+			return taskDone( false );
 		}
 
-                done( false );
+		grunt.log.writeln( "Built " + files.length + " resources." );
+
+		// Build validate.js
+		grunt.file.write( targetDir + "/validate.js",
+			"(function() {" +
+				grunt.file.read( require.resolve( "semver" ) ) + ";" +
+				grunt.file.read( "lib/manifest.js" ) +
+				grunt.file.read( "resources/validate.js" ) +
+			"})();" );
+
+		taskDone();
+	});
+});
+
+grunt.registerTask( "sync-docs", function() {
+	var done = this.async(),
+		dir = grunt.config( "wordpress.dir" );
+
+	async.waterfall([
+		function syncPosts( fn ) {
+			grunt.helper( "wordpress-sync-posts", path.join( dir, "posts/" ), fn );
+		},
+		function syncResources( fn ) {
+			grunt.helper( "wordpress-sync-resources", path.join( dir, "resources/" ), fn );
+		}
+	], function( error ) {
+		if ( error ) {
+			return done( false );
+		}
+
+		done();
 	});
 });
 
@@ -148,9 +179,11 @@ grunt.registerTask( "restore-repos", function() {
 });
 
 
+
 grunt.registerTask( "default", "lint test" );
-grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb build-pages sync-docs build-resources" );
-grunt.registerTask( "update", "clean build-pages build-resources sync-docs" );
-grunt.registerTask( "restore", "clean-retries setup-retrydb build-pages sync-docs build-resources restore-repos" );
+grunt.registerTask( "publish-docs", "build-pages build-resources sync-docs" );
+grunt.registerTask( "setup", "setup-pluginsdb setup-retrydb publish-docs" );
+grunt.registerTask( "update", "clean publish-docs" );
+grunt.registerTask( "restore", "clean-retries setup-retrydb publish-docs restore-repos" );
 
 };

@@ -28,7 +28,7 @@ ready to publish your plugin!
 	<p>Since this tool uses the new HTML5 FileReader API to look at the file contents
 		without actually uploading your file to the server, you'll need a moder browser
 		like Chrome, Safari, Firefox, Opera or IE10. </p>
-	<div class="validator-output"></div>
+	<pre id="validator-output"></pre>
 </div>
 
 <script src="/resources/validate.js"></script>
