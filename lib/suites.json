@@ -1,3 +1,4 @@
 {
-	"github/jquery/jquery-ui": "ui."
+	"github/jquery/jquery-ui": "ui.",
+	"github/acidb/mobiscroll": "mobiscroll."
 }
