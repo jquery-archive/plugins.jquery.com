@@ -2,7 +2,7 @@
 	"repoDir": "/tmp/plugin-repos",
 	"pluginsDb": "plugins.db",
 	"wordpress": {
-		"url": "dev.plugins.jquery.com",
+		"url": "local.plugins.jquery.com",
 		"username": "admin",
 		"password": "secret"
 	}
