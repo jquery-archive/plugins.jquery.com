@@ -51,9 +51,16 @@ version listed in the manifest file. So, if the version field in the manifest
 is "0.1.1" the tag should be either "0.1.1" or "v0.1.1". If the manifest file
 is valid, the version will be automatically added to the plugins site.
 
-We highly suggest that you **do not overwrite old tags**, instead, update the
-version number tag in the manifest, commit, and create a new tag to fix any
-errors you've encountered.
+The registry **does not support re-processing tags that it has already seen.**
+Therefore, we strongly suggest that you **do not overwrite old tags**. Instead,
+update the version number tag in the manifest, commit, and create a new tag to
+fix any errors you've encountered. 
+
+For example, you've pushed version `v1.7.0` of your plugin, but there is an
+[error detected](/error.log) in the manifest. If you fix the error, delete,
+re-create, and push another `v1.7.0` tag, the registry **will not** detect it.
+You will have to create and push `v1.7.1`.
+
 
 ## Troubleshooting
 
