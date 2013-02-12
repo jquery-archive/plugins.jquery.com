@@ -47,16 +47,10 @@ using [nave-installer](https://github.com/danheberden/nave-installer) or downloa
 
 #### plugins.jquery.com setup
 
-1. `git clone git@github.com:jquery/plugins.jquery.com.git`
-
-2. `cd plugins.jquery.com`
-
-3. `npm install`
-
-4. `cp config-sample.json config.json`
-
-5. Edit config.json
-    * Set `wordpress` properties to contain a valid username and password for the WordPress site.
+To build and deploy your changes for previewing in a
+[`jquery-wp-content`](https://github.com/jquery/jquery-wp-content) instance,
+follow the [workflow instructions](http://contribute.jquery.org/web-sites/#workflow) from our
+documentation on [contributing to jQuery Foundation web sites](http://contribute.jquery.org/web-sites/).
 
 If you want to setup and ultimately run the node scripts that manage plugin entries, run `grunt setup`. 
 If you need to clear the db or are getting and error running `grunt setup` regarding the setupdb or 
