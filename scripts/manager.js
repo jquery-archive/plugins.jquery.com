@@ -1,7 +1,7 @@
 var path = require( "path" ),
 	spawn = require( "child_process" ).spawn,
 	logger = require( "../lib/logger" ),
-	consoleOption = process.argv.indexOf( "--console" ) ? "--console" : "";
+	consoleOption = process.argv.indexOf( "--console" ) !== -1 ? "--console" : "";
 
 logger.log( "Manager started." );
 
