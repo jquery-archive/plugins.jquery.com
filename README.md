@@ -77,5 +77,13 @@ process (you have to kill the pid's from the processes' pid file). Also, running
 manually and individually is much easier for development, as you will probably only *need* 
 update-server.js running. 
 
+### Transferring ownership of a plugin
 
+On occassion, a plugin will be transferred from one owner to another. When this
+happens, you will need to verify that the transfer is legitimate. The request
+should come from the original owner, but in rare circumstances the request may
+come from the new owner and the original owner may not be reachable.
 
+To transfer a plugin, log into the production server and run the `bin/transfer.js`
+script. The script will prompt you for the necessary information and has several
+checks to ensure that the data provided isn't junk.
