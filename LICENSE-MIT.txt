@@ -1,4 +1,8 @@
-Copyright (c) 2011 jQuery Team, http://jquery.org/team
+Copyright (c) 2013 jQuery Foundation, http://jquery.org/
+
+This software consists of voluntary contributions made by many
+individuals. For exact contribution history, see the revision history
+and logs, available at http://github.com/jquery/plugins.jquery.com
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
