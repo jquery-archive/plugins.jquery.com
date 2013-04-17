@@ -16,6 +16,13 @@ process.on( "uncaughtException", function( error ) {
 function isStable( version ) {
 	return (/^\d+\.\d+\.\d+$/).test( version );
 }
+function extend( a, b ) {
+	for ( var p in b ) {
+		a[ p ] = b[ p ];
+	}
+
+	return a;
+}
 
 var actions = {};
 
@@ -134,7 +141,10 @@ actions.addRelease = function( data, fn ) {
 			// main page is constructed from the new version since pretty much
 			// anything can change between versions.
 			if ( versions.latest === manifest.version ) {
-				mainPage = Object.create( pageDetails );
+				extend( mainPage, pageDetails );
+				// don't update the post date on main page, and let it be set
+				// to whenever we processed it, no harm here.
+				delete mainPage.date;
 				mainPage.name = manifest.name;
 				mainPage.customFields = mergeCustomFields(
 					existingCustomFields, pageDetails.customFields );
