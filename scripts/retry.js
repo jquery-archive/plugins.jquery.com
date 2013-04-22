@@ -87,6 +87,9 @@ var processFailures = function( fn ) {
 processFailures(function( error ) {
 	if ( error ) {
 		logger.error( "Error during retry: " + error.stack );
+
+		// Kill the process with an error code and let the manager restart it
+		process.exit( 1 );
 	}
 });
 
