@@ -11,7 +11,7 @@
   "dependencies": {
     "mkdirp": "0.3.4",
     "semver": "1.1.2",
-    "sqlite3": "2.1.5",
+    "sqlite3": "2.1.7",
     "step": "0.0.5",
     "rimraf": "2.1.1",
     "wordpress": "0.1.3",
