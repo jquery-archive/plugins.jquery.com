@@ -295,6 +295,9 @@ function processNextAction( actionId, fn ) {
 processActions(function( error ) {
 	if ( error ) {
 		logger.error( "Error updating WordPress: " + error.stack );
+
+		// Kill the process with an error code and let the manager restart it
+		process.exit( 1 );
 	}
 });
 
