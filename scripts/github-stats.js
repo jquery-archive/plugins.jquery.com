@@ -1,80 +1,33 @@
-/* jshint laxcomma: true */
-var
-	https = require("https")
-	, util = require("util")
-;
+var https = require( "https" );
 
-module.exports = function(plugin, callback) {
-	function buildOptions() {
-		var options
-			, repoPath = null
-		;
+module.exports = function ( plugin, callback ) {
 
-		if (plugin.repo) {
-			repoPath = plugin.repo.split("/").slice(1).join("/");
-		}
+	function response ( res ) {
+		var data = "",
+			error = null;
 
-		if (!repoPath || repoPath.length === 0) {
-			if (typeof(callback) === "function") {
-				callback("Invalid repository");
-			}
-		}
+		res.on ( "data", function(chunk){ data += chunk; } );
 
-		options = {
-			host: "api.github.com",
-			path: "/repos/" + repoPath,
-			headers: {
-				"user-agent": "node.js scraper"
-			}
-		};
+		res.on ( "end", function(){
+			if ( res.statusCode === 304 ) {
+				console.log("304, no work to do");
+			} else if ( res.statusCode === 200 ) {
+				try {
+					data = JSON.parse(data);
+					plugin.watchers = data.watchers_count;
+					plugin.forks = data.forks_count;
 
-		// Slap on the etag header, 304s in response don't count against our rate limit.
-		if (plugin.etag) {
-			options.headers["If-None-Match"] = '"' + plugin.etag + '"';
-		}
-
-		return options;
-	}
-
-	function response(res) {
-		var data = ""
-			, error = null
-		;
-
-		res.on("data", function (chunk) {
-			data += chunk;
-		});
-
-		res.on("end", function () {
-			switch (res.statusCode) {
-
-				case 304:
-					console.log("304, no work to do");
-					break;
-
-				case 200:
-					try {
-						data = JSON.parse(data);
-						plugin.watchers = data.watchers_count;
-						plugin.forks = data.forks_count;
-						plugin.etag = res.headers.etag;
-
-						console.log("Plugin " + plugin.plugin + " updated!");
-						console.log("Watchers: " + data.watchers_count + " Forks: " + data.forks_count + "\n");
-					} catch (err) {
-						error = err;
-					}
-					break;
-
-				default:
-					// Well that's weird, wat do?
-					console.log("Unexpected reply, take a look:\n\n" + data);
-					break;
+					console.log("Plugin " + plugin.plugin + " updated!");
+					console.log("Watchers: " + data.watchers_count + " Forks: " + data.forks_count + "\n");
+				} catch (err) {
+					error = err;
+				}
+			} else {
+				// Well that's weird, wat do?
+				console.log("Unexpected reply, take a look:\n\n" + data);
 			}
 
-			if (typeof(callback) === "function") {
-				callback(error, plugin);
-			}
+			callback(null, plugin);
 		});
 	}
 
@@ -84,6 +37,14 @@ module.exports = function(plugin, callback) {
 
 	console.log("Processing plugin " + plugin.plugin);
 
-	https.request(buildOptions(), response).on("error", errorHandler).end();
+	var options = {
+		host: "api.github.com",
+		path: "/repos/" + plugin.repo.split("/").slice(1).join("/"),
+		headers: {
+			"user-agent": "stats/0.1 (+http://plugins.jquery.com)"
+		}
+	};
+
+	https.request( options, response ).on( "error", errorHandler ).end();
 };
 
