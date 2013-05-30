@@ -1,4 +1,5 @@
-var https = require( "https" );
+var https = require( "https" ),
+	logger = require( "../lib/logger" );
 
 module.exports = function ( plugin, callback ) {
 
@@ -10,21 +11,21 @@ module.exports = function ( plugin, callback ) {
 
 		res.on ( "end", function(){
 			if ( res.statusCode === 304 ) {
-				console.log("304, no work to do");
+				logger.log("304, no work to do");
 			} else if ( res.statusCode === 200 ) {
 				try {
 					data = JSON.parse(data);
 					plugin.watchers = data.watchers_count;
 					plugin.forks = data.forks_count;
 
-					console.log("Plugin " + plugin.plugin + " updated!");
-					console.log("Watchers: " + data.watchers_count + " Forks: " + data.forks_count + "\n");
+					logger.log("Plugin " + plugin.plugin + " updated!");
+					logger.log("Watchers: " + data.watchers_count + " Forks: " + data.forks_count + "\n");
 				} catch (err) {
 					error = err;
 				}
 			} else {
 				// Well that's weird, wat do?
-				console.log("Unexpected reply, take a look:\n\n" + data);
+				logger.log("Unexpected reply, take a look:\n\n" + data);
 			}
 
 			callback(null, plugin);
@@ -32,10 +33,10 @@ module.exports = function ( plugin, callback ) {
 	}
 
 	function errorHandler(error) {
-		console.log("Error: " + error);
+		logger.log("Error: " + error);
 	}
 
-	console.log("Processing plugin " + plugin.plugin);
+	logger.log("Processing plugin " + plugin.plugin);
 
 	var options = {
 		host: "api.github.com",
