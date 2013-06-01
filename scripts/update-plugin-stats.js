@@ -1,58 +1,55 @@
-/**
- * update-plugin-stats.js
- */
-/* jshint laxcomma: true */
-var db = require("../lib/pluginsdb.js")
-	, util  = require("util")
-	, getstats = require("./github-stats.js")
-	, delay = 1000
-	, queue
-	, iv
-	, ready
-;
+var db = require( "../lib/pluginsdb" ),
+	service = require( "../lib/service" ),
+	logger = require( "../lib/logger" ),
+	iv,
+	queue,
+	ready,
+	delay = 60*1000;
 
-// Very simple logger
-function logger(msg) {
-	if (msg) {
-		console.log("[Logger] " + msg);
-	}
-}
-
-function update(err, plugin) {
-	if (err) {
-		logger(err);
+function update( err, plugin ) {
+	if ( err ) {
+		logger.log( err );
 	} else {
-		db.updateRepoMeta(plugin.repo, plugin, logger);
+		db.updateRepoMeta( plugin.repo, plugin, logger );
 	}
 }
 
 function processData() {
-	var data = queue.shift();
+	var repo,
+		data = queue.shift();
 
-	if (ready && data) {
-		getstats(data, update);
+	if ( !data ) {
+		iv = setTimeout( init, delay );
+	} else if ( ready && data ) {
+		repo = service.getRepoById( data.repo );
+		repo.getStats( data, update );
+		iv = setTimeout( processData, delay );
 	} else {
-		if(!ready || iv) {
-			clearInterval(iv);
-			process.exit(0);
+		if ( !ready || iv ) {
+			clearTimeout( iv );
+			process.exit( 0 );
 		}
 	}
 }
 
-function init(err, plugins) {
-	if (!err && plugins.length > 0) {
-		queue = plugins;
-		ready = true;
-		iv = setInterval(processData, delay);
-	}
+function init() {
+	db.getAllPlugins(function( err, plugins ) {
+		if ( !err && plugins.length > 0 ) {
+			queue = plugins;
+			ready = true;
+			processData();
+		} else {
+			iv = setTimeout( init, delay );
+		}
+	});
 }
 
 // Kick off
-db.getAllPlugins(init);
+init();
 
 // Let the current action finish, then stop processing and exit
 function shutdownHook() {
-	logger( "Shutting down update-plugin-stats." );
+	logger.log( "Shutting down update-plugin-stats." );
 	ready = false;
 }
 
