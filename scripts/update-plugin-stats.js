@@ -10,7 +10,12 @@ function update( err, plugin ) {
 	if ( err ) {
 		logger.log( err );
 	} else {
-		db.updateRepoMeta( plugin.repo, plugin, logger );
+		db.updateRepoMeta( plugin.repo, plugin, function(err){
+			if ( err ) {
+				logger.log( err );
+			}
+			iv = setTimeout( processData, delay );
+		});
 	}
 }
 
@@ -18,17 +23,14 @@ function processData() {
 	var repo,
 		data = queue.shift();
 
-	if ( !data ) {
+	if ( !ready ) {
+		clearTimeout( iv );
+		process.exit( 0 );
+	} else if ( !data ) {
 		iv = setTimeout( init, delay );
 	} else if ( ready && data ) {
 		repo = service.getRepoById( data.repo );
 		repo.getStats( data, update );
-		iv = setTimeout( processData, delay );
-	} else {
-		if ( !ready || iv ) {
-			clearTimeout( iv );
-			process.exit( 0 );
-		}
 	}
 }
 
