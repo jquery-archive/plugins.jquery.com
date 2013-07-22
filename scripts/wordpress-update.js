@@ -1,5 +1,4 @@
 var fs = require( "fs" ),
-	semver = require( "semver" ),
 	Step = require( "step" ),
 	config = require( "../lib/config" ),
 	wordpress = require( "../lib/wordpress" ),
@@ -13,9 +12,6 @@ process.on( "uncaughtException", function( error ) {
 	logger.error( "Uncaught exception: " + error.stack );
 });
 
-function isStable( version ) {
-	return (/^\d+\.\d+\.\d+$/).test( version );
-}
 function extend( a, b ) {
 	for ( var p in b ) {
 		a[ p ] = b[ p ];
@@ -31,93 +27,13 @@ actions.addRelease = function( data, fn ) {
 		manifest = data.manifest,
 		tag = data.tag;
 
-	function getPageDetails( fn ) {
-		Step(
-			function() {
-				repo.getReleaseDate( tag, this );
-			},
-
-			function( error, date ) {
-				if ( error ) {
-					return fn( error );
-				}
-
-				fn( null, {
-					type: "jquery_plugin",
-					status: "publish",
-					title: manifest.title,
-					content: manifest.description,
-					date: date,
-					termNames: {
-						post_tag: (manifest.keywords || []).map(function( keyword ) {
-							return keyword.toLowerCase();
-						})
-					},
-					customFields: [
-						{ key: "download_url", value: manifest.download || repo.downloadUrl( tag ) },
-						{ key: "repo_url", value: repo.siteUrl },
-						{ key: "manifest", value: JSON.stringify( manifest ) }
-					]
-				});
-			}
-		);
-	}
-
-	function mergeCustomFields( existing, current ) {
-		current.forEach(function( customField ) {
-			// if the field already exists, update the value
-			for ( var i = 0, length = existing.length - 1; i < length; i++ ) {
-				if ( existing[ i ].key === customField.key ) {
-					existing[ i ].value = customField.value;
-					return;
-				}
-			}
-
-			// the field doesn't exist, so add it
-			existing.push( customField );
-		});
-
-		return existing;
-	}
-
-	function getVersions( page ) {
-		var versions, listed, latest;
-
-		versions = (page.customFields || []).filter(function( customField ) {
-			return customField.key === "versions";
-		});
-		versions = versions.length ? JSON.parse( versions[ 0 ].value ) : [];
-
-		listed = versions
-			.concat( manifest.version )
-			.sort( semver.compare )
-			.reverse()
-			.filter(function( version ) {
-				if ( latest ) {
-					return isStable( version );
-				}
-				if ( isStable( version ) ) {
-					latest = version;
-				}
-				return true;
-			})
-			.reverse();
-
-		// no stable relases yet, show latest pre-release
-		if ( !latest ) {
-			latest = listed[ listed.length - 1 ];
-		}
-
-		return {
-			all: versions,
-			listed: listed,
-			latest: latest
-		};
-	}
-
 	Step(
 		function getPageData() {
-			getPageDetails( this.parallel() );
+			wordpress.post.fromRelease({
+				repo: repo,
+				manifest: manifest,
+				tag: tag
+			}, this.parallel() );
 			pluginsDb.getMeta( manifest.name, this.parallel() );
 			wordpress.getPostForPlugin( manifest.name, this.parallel() );
 		},
@@ -128,30 +44,31 @@ actions.addRelease = function( data, fn ) {
 			}
 
 			this.parallel()( null, pageDetails );
-			var versions = getVersions( existingPage ),
-				mainPageCallback = this.parallel(),
+			var mainPageCallback = this.parallel(),
 				existingCustomFields = existingPage.customFields || [],
 				mainPage = {
 					customFields: existingCustomFields
-				};
+				},
+				versions = wordpress.post.addVersion(
+					wordpress.post.getVersions( existingPage ),
+					manifest.version );
 
 			// The main page starts as an empty object so that publishing a new
 			// version which is not the latest version only updates the metadata
-			// of the main page. If the new version is the latest, then use the
+			// of the main page. If the new version is the latest, then the
 			// main page is constructed from the new version since pretty much
 			// anything can change between versions.
 			if ( versions.latest === manifest.version ) {
 				extend( mainPage, pageDetails );
-				// don't update the post date on main page, and let it be set
-				// to whenever we processed it, no harm here.
+				// Don't update the post date on the main page
 				delete mainPage.date;
 				mainPage.name = manifest.name;
-				mainPage.customFields = mergeCustomFields(
+				mainPage.customFields = wordpress.post.mergeCustomFields(
 					existingCustomFields, pageDetails.customFields );
 			}
 
 			// Always update the metadata for the main page
-			mainPage.customFields = mergeCustomFields( mainPage.customFields, [
+			mainPage.customFields = wordpress.post.mergeCustomFields( mainPage.customFields, [
 				{ key: "versions", value: JSON.stringify( versions.listed ) },
 				{ key: "latest", value: versions.latest },
 				{ key: "watchers", value: repoMeta.watchers },
