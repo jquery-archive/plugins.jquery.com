@@ -109,6 +109,111 @@ actions.addRelease = function( data, fn ) {
 	);
 };
 
+actions.removeRelease = function( data, fn ) {
+	var mainPost, versions,
+		plugin = data.plugin,
+		version = data.version,
+		versionedPostId = data.postId;
+
+	// Get the main post
+	wordpress.getPostForPlugin( plugin, function( error, post ) {
+		if ( error ) {
+			return fn( error );
+		}
+
+		var isLatest;
+
+		mainPost = post;
+		if ( !mainPost.id ) {
+			return fn( new Error( "Error getting the main post for " + plugin + "." ) );
+		}
+
+		versions = wordpress.post.parseVersions( wordpress.post.getVersions( mainPost ) );
+		isLatest = versions.latest === version;
+		versions = wordpress.post.removeVersion( versions.all, version );
+
+		if ( isLatest ) {
+			updateMainPage();
+		} else {
+			updateVersionMetaOnly();
+		}
+	});
+
+	function updateVersionMetaOnly() {
+		publishMainPost({
+			customFields: wordpress.post.mergeCustomFields( mainPost.customFields, [
+				{ key: "versions", value: JSON.stringify( versions.listed ) },
+				{ key: "latest", value: versions.latest }
+			])
+		});
+	}
+
+	function updateMainPage() {
+
+		// Get the post for the new latest release
+		wordpress.getPostForRelease( plugin, versions.latest, function( error, post ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			var mainPostUpdate;
+
+			if ( !post.id ) {
+				return fn( new Error( "Error getting the post for " +
+					plugin + " " + versions.latest + "." ) );
+			}
+
+			mainPostUpdate = {
+				title: post.title,
+				content: post.description,
+				termNames: {
+					post_tag: (post.terms || [])
+						.filter(function( term ) {
+							return term.taxonomy === "post_tag";
+						})
+						.map(function( term ) {
+							return term.name;
+						})
+				},
+				customFields: wordpress.post.mergeCustomFields(
+					mainPost.customFields, post.customFields )
+			};
+			mainPostUpdate.customFields = wordpress.post.mergeCustomFields(
+				mainPostUpdate.customFields,
+				[
+					{ key: "versions", value: JSON.stringify( versions.listed ) },
+					{ key: "latest", value: versions.latest }
+				]);
+
+			publishMainPost( mainPostUpdate );
+		});
+	}
+
+	function publishMainPost( post ) {
+		wordpress.editPost( mainPost.id, post, function( error ) {
+			if ( error ) {
+				return fn( error );
+			}
+		});
+
+		deleteVersionedPost();
+	}
+
+	function deleteVersionedPost() {
+
+		// Custom post types don't go through the trash, so only delete once
+		wordpress.deletePost( versionedPostId, function( error ) {
+			if ( error ) {
+				return fn( error );
+			}
+
+			logger.log( "Deleted " + plugin + " " + version +
+				" (" + versionedPostId + ") from WordPress." );
+
+			fn( null );
+		});
+	}
+};
 
 
 
