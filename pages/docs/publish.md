@@ -14,13 +14,13 @@ to `http://plugins.jquery.com/postreceive-hook`.
 ## Add a Manifest to your Repository
 
 The jQuery Plugins Registry will look in the root level of your repository for
-any files named `*.jquery.json`.  You will want to create
-<code><em>yourplugin</em>.jquery.json</code> according to the [package manifest
+any files named `*.jquery.json`. You will want to create
+`*yourplugin*.jquery.json` according to the [package manifest
 specification](/docs/package-manifest/). Use an online JSON verifier such as
 [JSONlint](http://jsonlint.com) to make sure the file is valid. You are now
 ready to publish your plugin!
 
-<h2>Validate Your Manifest File Here</h2>
+## Validate Your Manifest File Here
 
 <div>
 	Upload your manifest file to check for common errors:

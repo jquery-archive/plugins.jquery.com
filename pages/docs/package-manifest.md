@@ -16,25 +16,25 @@ The files must be actual JSON, not just a JavaScript object literal.
 
 ### Required Fields
 
-* <a href="#field-name">name</a>
-* <a href="#field-version">version</a>
-* <a href="#field-title">title</a>
-* <a href="#field-author">author</a>
-* <a href="#field-licenses">licenses</a>
-* <a href="#field-dependencies">dependencies</a>
+* <a href="#name">name</a>
+* <a href="#version">version</a>
+* <a href="#title">title</a>
+* <a href="#author">author</a>
+* <a href="#licenses">licenses</a>
+* <a href="#dependencies">dependencies</a>
 
 ### Optional Fields
 
-* <a href="#field-description">description</a>
-* <a href="#field-keywords">keywords</a>
-* <a href="#field-homepage">homepage</a>
-* <a href="#field-docs">docs</a>
-* <a href="#field-demo">demo</a>
-* <a href="#field-download">download</a>
-* <a href="#field-bugs">bugs</a>
-* <a href="#field-maintainers">maintainers</a>
+* <a href="#description">description</a>
+* <a href="#keywords">keywords</a>
+* <a href="#homepage">homepage</a>
+* <a href="#docs">docs</a>
+* <a href="#demo">demo</a>
+* <a href="#download">download</a>
+* <a href="#bugs">bugs</a>
+* <a href="#maintainers">maintainers</a>
 
-### <a name="field-name">name</a>
+### name
 
 The *most* important things in your manifest file are the name and version fields.
 The name and version together form an identifier that is assumed
@@ -54,7 +54,7 @@ to see if there's something by that name already, before you get too attached to
 Site, either consider renaming your plugin or namespacing it. For example, jQuery UI
 plugins are listed with the "ui." prefix (e.g. ui.dialog, ui.autocomplete).
 
-### <a name="field-version">version</a>
+### version
 
 The *most* important things in your manifest file are the name and version fields.
 The name and version together form an identifier that is assumed
@@ -64,19 +64,19 @@ per [node-semver](https://github.com/isaacs/node-semver).
 
 See [Specifying Versions](#specifying-versions).
 
-### <a name="field-title">title</a>
+### title
 
 A nice complete and pretty title of your plugin. This will be used for the page
 title and top-level heading on your plugin's page. Include jQuery (if you want) and
-spaces and mixed case, unlike [name](#field-name).
+spaces and mixed case, unlike [name](#name).
 
-### <a name="field-author">author</a>
+### author
 
 One person.
 
 See [People Fields](#people-fields).
 
-### <a name="field-licenses">licenses</a>
+### licenses
 
 Array of licenses under which the plugin is provided. Each license is a hash with
 a url property linking to the actual text and an optional "type" property specifying the type of license. If the license is one of the [official open source licenses](http://www.opensource.org/licenses/alphabetical), the official license name or its abbreviation may be explicated with the "type" property.
@@ -90,7 +90,7 @@ a url property linking to the actual text and an optional "type" property specif
 ]
 ```
 
-### <a name="field-dependencies">dependencies</a>
+### dependencies
 
 Dependencies are specified with a simple hash of package name to version
 range. The version range is EITHER a string which has one or more
@@ -106,46 +106,46 @@ of each library you depend on.
 
 You must list at least one dependency, `jquery` (note that it's lower-case).
 
-### <a name="field-description">description</a>
+### description
 
 Put a description in it. It's a string. This helps people discover your
 plugin, as it's listed on the jQuery Plugins Site.
 
-### <a name="field-keywords">keywords</a>
+### keywords
 
 Put keywords in it. It's an array of strings. This helps people
 discover your plugin as it's listed on the jQuery Plugins Site.
 Keywords may only contain letters, numbers, hyphens, and dots.
 
-### <a name="field-homepage">homepage</a>
+### homepage
 
 The url to the plugin homepage.
 
-### <a name="field-docs">docs</a>
+### docs
 
 The url to the plugin documentation.
 
-### <a name="field-demo">demo</a>
+### demo
 
 The url to the plugin demo or demos.
 
-### <a name="field-download">download</a>
+### download
 
 The url to download the plugin. A download URL will be automatically generated
 based on the tag in GitHub, but you can specify a custom URL if you'd prefer
 to send users to your own site.
 
-### <a name="field-bugs">bugs</a>
+### bugs
 
 The url to the bug tracker for the plugin.
 
-### <a name="field-maintainers">maintainers</a>
+### maintainers
 
 An array of people.
 
 See [People Fields](#people-fields).
 
-## <a name="people-fields">People Fields</a>
+## People Fields
 
 A "person" is an object with a "name" field and optionally "url" and
 "email", like this:
@@ -162,7 +162,7 @@ Both the email and url are optional.
 
 ---
 
-## <a name="specifying-versions">Specifying Versions</a>
+## Specifying Versions
 
 Version range descriptors may be any of the following styles, where "version"
 is a semver compatible version identifier.
@@ -198,7 +198,7 @@ For example, these are all valid:
 }
 ```
 
-### <a name="tilde-version-ranges">Tilde Version Ranges</a>
+### Tilde Version Ranges
 
 A range specifier starting with a tilde `~` character is matched against
 a version in the following fashion.
@@ -212,7 +212,7 @@ For example, the following are equivalent:
 * `"~1.2" = ">=1.2.0 <1.3.0"`
 * `"~1" = ">=1.0.0 <2.0.0"`
 
-### <a name="x-version-ranges">X Version Ranges</a>
+### X Version Ranges
 
 An "x" in a version range specifies that the version number must start
 with the supplied digits, but any digit may be used in place of the x.
@@ -228,7 +228,7 @@ The following are equivalent:
 You may not supply a comparator with a version containing an x. Any
 digits after the first "x" are ignored.
 
-### <a name="sample">Sample manifest</a>
+### Sample manifest
 
 **color.jquery.json**
 

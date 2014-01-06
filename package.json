@@ -18,7 +18,7 @@
     "grunt": "0.3.17",
     "grunt-wordpress": "1.0.7",
     "grunt-check-modules": "0.1.0",
-    "grunt-jquery-content": "0.9.0",
+    "grunt-jquery-content": "0.11.1",
     "grunt-clean": "0.3.0",
     "simple-log": "1.1.0"
   }
