@@ -7,7 +7,7 @@ your plugin. The name is a unique identifier that distinguishes your plugin
 from all other plugins. This is different from the title of your plugin, which
 you can think of as the display name.
 
-**Plugin names may only contain letters, numbers, hypens, dots, and underscores.**
+**Plugin names may only contain letters, numbers, hyphens, dots, and underscores.**
 
 We encourage you to follow a few simple tips as well:
 
