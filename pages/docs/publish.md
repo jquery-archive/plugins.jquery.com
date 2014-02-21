@@ -4,12 +4,13 @@
 
 Publishing your plugin on the site is a three step process:
 
-## Add a Post-Receive Hook
+## Add a Service Hook
 
-First, you'll need to create a post-receive hook on GitHub. Just follow the
-[step-by-step guide for adding a
-webhook](https://help.github.com/articles/post-receive-hooks) and set the URL
-to `http://plugins.jquery.com/postreceive-hook`.
+First, you'll need to enable the jQuery Plugins service hook on GitHub. On the
+settings page for your repository, click the Webhooks &amp; Services link, then
+click the Configure services button. Scroll down to find the jQuery Plugins
+service and enable it (there's no config, just check the Active checkbox and
+click the Update settings button).
 
 ## Add a Manifest to your Repository
 
