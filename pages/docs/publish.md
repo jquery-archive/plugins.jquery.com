@@ -36,9 +36,9 @@ ready to publish your plugin!
 
 ## Publishing a Version
 
-After the post-receive hook is setup and your manifest has been added,
+After the service hook is setup and your manifest has been added,
 publishing your plugin is as simple as tagging the version in git and pushing
-the tag to GitHub.  The post-receive hook will notify the plugins site that a
+the tag to GitHub. The service hook will notify the plugins site that a
 new tag is available and the plugins site will take care of the rest!
 
 ```bash
