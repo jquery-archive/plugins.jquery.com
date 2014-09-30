@@ -16,9 +16,9 @@
     "rimraf": "2.1.1",
     "wordpress": "0.1.3",
     "grunt": "0.3.17",
-    "grunt-wordpress": "1.1.0",
+    "grunt-wordpress": "1.2.1",
     "grunt-check-modules": "0.1.0",
-    "grunt-jquery-content": "0.12.1",
+    "grunt-jquery-content": "0.13.0",
     "grunt-clean": "0.3.0",
     "simple-log": "1.1.0"
   }
