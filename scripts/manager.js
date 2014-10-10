@@ -1,3 +1,8 @@
+function wait() {
+	setTimeout( wait, 1000 );
+}
+return wait();
+
 var path = require( "path" ),
 	spawn = require( "child_process" ).spawn,
 	logger = require( "../lib/logger" ),
