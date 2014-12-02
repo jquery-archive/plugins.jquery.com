@@ -1,19 +1,16 @@
-var config = require( "./lib/config" );
-var path = require( "path" );
+var path = require( "path" ),
+	rimraf = require( "rimraf" ),
+	config = require( "./lib/config" );
 
 module.exports = function( grunt ) {
 
 var async = grunt.utils.async;
 
 grunt.loadNpmTasks( "grunt-wordpress" );
-grunt.loadNpmTasks( "grunt-clean" );
 grunt.loadNpmTasks( "grunt-jquery-content" );
 grunt.loadNpmTasks( "grunt-check-modules" );
 
 grunt.initConfig({
-	clean: {
-		wordpress: "dist/"
-	},
 	lint: {
 		grunt: "grunt.js",
 		src: [ "lib/**", "scripts/**" ]
@@ -40,6 +37,10 @@ grunt.initConfig({
 	wordpress: grunt.utils._.extend({
 		dir: "dist/wordpress"
 	}, config.wordpress )
+});
+
+grunt.registerTask( "clean", function() {
+	rimraf.sync( "dist" );
 });
 
 // We only want to sync the documentation, so we override wordpress-get-postpaths
@@ -113,8 +114,7 @@ grunt.registerTask( "sync-docs", function() {
 // clean-all will delete EVERYTHING, including the plugin registery. This is
 // useful only for development if you want a clean slate to test from.
 grunt.registerTask( "clean-all", function() {
-	var rimraf = require( "rimraf" ),
-		retry = require( "./lib/retrydb" );
+	var retry = require( "./lib/retrydb" );
 
 	// clean repo checkouts
 	rimraf.sync( config.repoDir );
