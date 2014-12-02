@@ -19,12 +19,6 @@ grunt.initConfig({
 		grunt: { options: grunt.file.readJSON( ".jshintrc" ) },
 		src: { options: grunt.file.readJSON( ".jshintrc" ) }
 	},
-	watch: {
-		docs: {
-			files: "pages/**",
-			tasks: "docs"
-		}
-	},
 	test: {
 		files: [ "test/**/*.js" ]
 	},
