@@ -5,5 +5,8 @@
 		"url": "vagrant.plugins.jquery.com",
 		"username": "admin",
 		"password": "secret"
+	},
+	"github": {
+		"token": "oauthtoken"
 	}
 }
