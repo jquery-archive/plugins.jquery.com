@@ -9,16 +9,16 @@
     "url": "git://github.com/jquery/plugins.jquery.com.git"
   },
   "dependencies": {
-    "mkdirp": "0.3.4",
-    "semver": "1.1.2",
-    "sqlite3": "2.1.7",
-    "step": "0.0.5",
-    "rimraf": "2.1.1",
-    "wordpress": "0.1.3",
-    "grunt": "0.3.17",
-    "grunt-wordpress": "1.2.1",
-    "grunt-check-modules": "0.1.0",
-    "grunt-jquery-content": "0.13.0",
-    "simple-log": "1.1.0"
+    "grunt": "^0.4.5",
+    "grunt-check-modules": "^1.0.0",
+    "grunt-jquery-content": "^2.3.1",
+    "grunt-wordpress": "^2.1.0",
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.4.4",
+    "semver": "^5.1.0",
+    "simple-log": "^1.3.0",
+    "sqlite3": "^3.1.1",
+    "step": "0.0.6",
+    "wordpress": "^1.1.1"
   }
 }

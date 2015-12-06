@@ -73,12 +73,12 @@ that content, run `grunt update`.
 #### Running the site for development and debugging
 
 1. `node scripts/update-server.js --console` will start the update server and
-log its output to the terminal window. This will *not* update wordpress, but
+log its output to the terminal window. This will *not* update Wordpress, but
 will let you see the result of adding a plugin locally.
 
 2. `node scripts/wordpress-update.js --console` will process the changes in
-sqlite into entries in wordpress. Note, if you're re-adding plugins that have
-already been added, you will need to remove those entries from wordpress.
+sqlite into entries in Wordpress. Note, if you're re-adding plugins that have
+already been added, you will need to remove those entries from Wordpress.
 
 ### Running the site normally
 
@@ -90,7 +90,7 @@ update-server.js running.
 
 ### Transferring ownership of a plugin
 
-On occassion, a plugin will be transferred from one owner to another. When this
+On occasion, a plugin will be transferred from one owner to another. When this
 happens, you will need to verify that the transfer is legitimate. The request
 should come from the original owner, but in rare circumstances the request may
 come from the new owner and the original owner may not be reachable.
