@@ -2,11 +2,11 @@
 	"title": "Publishing Your Plugin"
 }</script>
 
-Publishing your plugin on the site is a three step process:
-
 <div class="warning">
 	The jQuery Plugin Registry is in read-only mode. New plugin releases will not be processed. We recommend moving to <a href="https://www.npmjs.com/">npm</a>, using "<a href="https://www.npmjs.org/browse/keyword/jquery-plugin">jquery-plugin</a>" as the keyword in your package.json. The npm blog has <a href="http://blog.npmjs.org/post/111475741445/publishing-your-jquery-plugin-to-npm-the-quick">instructions for publishing your plugin to npm</a>.
 </div>
+
+Publishing your plugin on the site is a three step process:
 
 ## Add a Service Hook
 
