@@ -90,7 +90,7 @@ update-server.js running.
 
 ### Transferring ownership of a plugin
 
-On occassion, a plugin will be transferred from one owner to another. When this
+On occasion, a plugin will be transferred from one owner to another. When this
 happens, you will need to verify that the transfer is legitimate. The request
 should come from the original owner, but in rare circumstances the request may
 come from the new owner and the original owner may not be reachable.
